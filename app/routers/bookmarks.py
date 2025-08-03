@@ -37,32 +37,58 @@ class BookmarkResponse(BaseModel):
     tags: Optional[str] = Field(None, max_length=255)
     created_at: date
     
+    class Config():
+        from_attributes = True
+    
+
 
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=List[BookmarkResponse])
 async def get_all_bookmarks(db: db_dependency):
+    
     return db.query(Bookmarks).all()
+
+
 
 
 @router.get("/{bookmark_id}", status_code=status.HTTP_200_OK, response_model=BookmarkResponse)
 async def get_bookmark(db: db_dependency, bookmark_id: int = Path(gt=0)):
+    
     bookmark = db.query(Bookmarks).filter(Bookmarks.id==bookmark_id).first()
     if bookmark is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bookmark not found.")
     return bookmark
     
 
-@router.post("/", status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=BookmarkResponse)
 async def create_bookmark(db: db_dependency,
-                          bookmark_request: BookmarkRequest):
-    bookmark = Bookmarks(**bookmark_request.model_dump(mode="json"))
+                          request_model: BookmarkRequest):
+    
+    bookmark = Bookmarks(**request_model.model_dump(mode="json"))
     db.add(bookmark)
     db.commit()
-    db.refresh()
+    db.refresh(bookmark)
+    return bookmark
     
     
-# @router.put("/{bookmark_id}", status_code=status.HTTP_204_NO_CONTENT)
-# async def update_bookmark(db: db_dependency,
-#                           request_model: BookmarkRequest):
     
+    
+@router.put("/{bookmark_id}", status_code=status.HTTP_200_OK, response_model=BookmarkResponse)
+async def update_bookmark(db: db_dependency,
+                          request_model: BookmarkRequest,
+                           bookmark_id: int = Path(gt=0)):
+    
+    bookmark = db.query(Bookmarks).filter(Bookmarks.id==bookmark_id).first()
+    if bookmark is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bookmark not found.")
+    
+    for key, value in request_model.model_dump(exclude_unset=True, mode="json").items():
+        setattr(bookmark, key, value)
+    
+    db.commit()
+    db.refresh(bookmark)
+    return bookmark
+        
 
