@@ -2,6 +2,7 @@ from typing import Annotated, Optional, List
 from fastapi import APIRouter, Depends, status, Path, HTTPException
 from ..db.database import SessionLocal
 from ..db.models import Bookmarks
+from .users import get_current_user
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, HttpUrl
 from datetime import date
@@ -19,6 +20,7 @@ def get_db():
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 class BookmarkRequest(BaseModel):
@@ -44,9 +46,9 @@ class BookmarkResponse(BaseModel):
 
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=List[BookmarkResponse])
-async def get_all_bookmarks(db: db_dependency):
-    
-    return db.query(Bookmarks).all()
+async def get_all_bookmarks(db: db_dependency, user: user_dependency):
+    bookmarks = db.query(Bookmarks).filter(Bookmarks.owner_id==user.get("id")).all()
+    return bookmarks
 
 
 
@@ -64,9 +66,10 @@ async def get_bookmark(db: db_dependency, bookmark_id: int = Path(gt=0)):
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=BookmarkResponse)
 async def create_bookmark(db: db_dependency,
-                          request_model: BookmarkRequest):
+                          bookmark_request: BookmarkRequest,
+                          user: user_dependency):
     
-    bookmark = Bookmarks(**request_model.model_dump(mode="json"))
+    bookmark = Bookmarks(**bookmark_request.model_dump(mode="json"), owner_id=user.get("id"))
     db.add(bookmark)
     db.commit()
     db.refresh(bookmark)
@@ -77,14 +80,14 @@ async def create_bookmark(db: db_dependency,
     
 @router.put("/{bookmark_id}", status_code=status.HTTP_200_OK, response_model=BookmarkResponse)
 async def update_bookmark(db: db_dependency,
-                          request_model: BookmarkRequest,
+                          bookmark_request: BookmarkRequest,
                            bookmark_id: int = Path(gt=0)):
     
     bookmark = db.query(Bookmarks).filter(Bookmarks.id==bookmark_id).first()
     if bookmark is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bookmark not found.")
     
-    for key, value in request_model.model_dump(exclude_unset=True, mode="json").items():
+    for key, value in bookmark_request.model_dump(exclude_unset=True, mode="json").items():
         setattr(bookmark, key, value)
     
     db.commit()

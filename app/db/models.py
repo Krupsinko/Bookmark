@@ -8,11 +8,14 @@ class Users(Base):
     __tablename__ = "users"
     
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True) 
-    #bookmarks: Mapped[List["Bookmarks"]] = relationship(back_populates="owner") 
+    role: Mapped[str] = mapped_column(String, nullable=False)
+    is_active: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    
+    # --- RELATIONS ---
+    bookmarks: Mapped[List["Bookmarks"]] = relationship(back_populates="owner") 
     
 
 class Bookmarks(Base):
@@ -26,6 +29,7 @@ class Bookmarks(Base):
     tags: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[date] = mapped_column(Date, default=datetime.now(timezone.utc))
     
-    #owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    #owner:  Mapped["Users"] = relationship(back_populates="bookmarks")
+    # --- RELATIONS ---
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    owner:  Mapped["Users"] = relationship(back_populates="bookmarks")
     

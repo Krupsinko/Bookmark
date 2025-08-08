@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from .db.database import engine, Base
 from .db.models import Users, Bookmarks
-from .routers import bookmarks
+from .routers import bookmarks, users
 
-app = FastAPI()
+app = FastAPI(title="BookmarkManager")
 
 Base.metadata.create_all(bind=engine)
 
@@ -12,4 +12,4 @@ def health_check():
     return {"status": "Healthy"}
 
 app.include_router(bookmarks.router)
-#app.include_router(users.router)
+app.include_router(users.router)
