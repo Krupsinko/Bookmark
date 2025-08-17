@@ -1,11 +1,11 @@
 from typing import List
 from .database import Base
-from sqlalchemy import String, Boolean, Date, ForeignKey, Integer
+from sqlalchemy import String, Boolean, Date, ForeignKey, Integer, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import date, datetime, timezone
+from datetime import date
 
-class Users(Base):
-    __tablename__ = "users"
+class User(Base):
+    __tablename__ = "user"
     
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -15,21 +15,24 @@ class Users(Base):
     is_active: Mapped[bool | None] = mapped_column(Boolean, default=True)
     
     # --- RELATIONS ---
-    bookmarks: Mapped[List["Bookmarks"]] = relationship(back_populates="owner") 
+    bookmarks: Mapped[List["Bookmark"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan") 
     
 
-class Bookmarks(Base):
-    __tablename__ = "bookmarks"
+class Bookmark(Base):
+    __tablename__ = "bookmark"
     
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     url: Mapped[str] = mapped_column(String, nullable=False)
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    tags: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[date] = mapped_column(Date, default=datetime.now(timezone.utc))
+    tags: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[Date] = mapped_column(Date, default=date.today())
+    favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    
     
     # --- RELATIONS ---
-    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    owner:  Mapped["Users"] = relationship(back_populates="bookmarks")
-    
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"))
+    owner:  Mapped["User"] = relationship(back_populates="bookmarks")

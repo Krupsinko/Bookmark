@@ -1,11 +1,25 @@
 from fastapi import FastAPI
 from .db.database import engine, Base
-from .db.models import Users, Bookmarks
+from .db.models import User, Bookmark
 from .routers import bookmarks, users
+from contextlib import asynccontextmanager
+import asyncio
 
-app = FastAPI(title="BookmarkManager")
 
-Base.metadata.create_all(bind=engine)
+# async def create_tables():
+#     async with engine.begin() as connection:
+#         await connection.run_sync(Base.metadata.create_all)
+
+
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     await create_tables()
+#     yield
+
+
+app = FastAPI(
+    title="BookmarkManager")
+# W razie potrzeby stworzenia bazy na nowo - dodać parametr lifespan=lifespan
 
 @app.get("/healthy")
 def health_check():
