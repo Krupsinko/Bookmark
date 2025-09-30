@@ -29,7 +29,7 @@ async def scrape_favicon(url):
             rel = link.get("rel")
             if not rel:
                 continue
-            if any(x in rel for x in["icon", "shortcut icon", "apple-touch-icon"]):
+            if any(x in rel for x in ["icon", "shortcut icon", "apple-touch-icon"]):
                 href = link.get("href")
                 if href:
                     size = link.get("sizes", "")

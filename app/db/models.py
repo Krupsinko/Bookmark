@@ -4,6 +4,7 @@ from sqlalchemy import String, Boolean, Date, ForeignKey, Integer, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date
 
+
 class User(Base):
     __tablename__ = "user"
     
@@ -12,7 +13,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[str] = mapped_column(String, nullable=False)
-    is_active: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     
     # --- RELATIONS ---
     bookmarks: Mapped[List["Bookmark"]] = relationship(

@@ -59,7 +59,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         username = payload.get("sub")
         user_id = payload.get("id")
         role = payload.get("role")
-        if username is None or user_id is None:
+        if username is None or user_id is None or role is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                                 detail="Unauthorized",
                                 headers={"WWW-Authenticate": "Bearer"})
@@ -70,7 +70,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     
     
     
-@router.post("/token", response_model=Token)
+@router.post("/token",status_code=status.HTTP_200_OK ,response_model=Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                 db: db_dependency) -> Token:
     user = await authenticate_user(form_data.username, form_data.password, db)
