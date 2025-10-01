@@ -1,8 +1,8 @@
 from typing import List
 from .database import Base
-from sqlalchemy import String, Boolean, Date, ForeignKey, Integer, JSON
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Integer, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import date
+from datetime import datetime
 
 
 class User(Base):
@@ -30,7 +30,10 @@ class Bookmark(Base):
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     tags: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[Date] = mapped_column(Date, default=date.today())
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime,
+                                                server_default=func.now(),
+                                                onupdate=func.now())
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
     
     

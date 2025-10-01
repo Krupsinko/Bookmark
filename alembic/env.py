@@ -11,12 +11,14 @@ from app.db.database import Base
 from app.db import models
 
 load_dotenv()
-url = os.getenv("SQLALCHEMY_DATABASE_URL")
-
+db_url = os.getenv("SQLALCHEMY_DATABASE_URL")
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", url)
+
+if db_url:
+    sync_db_url = db_url.replace("+aiosqlite", "")
+    config.set_main_option("sqlalchemy.url", sync_db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

@@ -49,6 +49,7 @@ async def get_all_bookmarks(db: db_dependency,
     
     
     data_stmt = (select(Bookmark)
+            .options(selectinload(Bookmark.owner))
             .where(Bookmark.owner_id == user.get("id"))
             .order_by(sort_options[sort_by])
             .offset(skip)
@@ -56,6 +57,7 @@ async def get_all_bookmarks(db: db_dependency,
     
     count_stmt = (select(func.count())
                   .select_from(Bookmark)
+                  .options(selectinload(Bookmark.owner))
                   .where(Bookmark.owner_id == user.get("id")))
     
     data_result = await db.execute(data_stmt)
@@ -79,8 +81,8 @@ async def get_bookmark(db: db_dependency,
                        user: user_dependency, 
                        bookmark_id: int = Path(gt=0)):
     
-    stmt = (select(Bookmark).
-            options(selectinload(Bookmark.owner))
+    stmt = (select(Bookmark)
+            .options(selectinload(Bookmark.owner))
             .where(Bookmark.id == bookmark_id,
                    Bookmark.owner_id == user.get("id")))
     result = await db.execute(stmt)
@@ -118,9 +120,11 @@ async def update_bookmark(db: db_dependency,
                           user: user_dependency, 
                           bookmark_id: int = Path(gt=0)):
     
-    stmt = select(Bookmark).where(
+    stmt = (select(Bookmark)
+        .options(selectinload(Bookmark.owner))
+        .where(
         Bookmark.id == bookmark_id,
-        Bookmark.owner_id == user.get("id"))
+        Bookmark.owner_id == user.get("id")))
     result = await db.execute(stmt)
     bookmark = result.scalar_one_or_none()
     
@@ -143,8 +147,10 @@ async def delete_bookmark(db: db_dependency,
                           user: user_dependency,
                           bookmark_id: int = Path(gt=0)
                           ):
-    stmt = select(Bookmark).where(Bookmark.id == bookmark_id,
-                                  Bookmark.owner_id == user.get("id"))
+    stmt = (select(Bookmark)
+            .options(selectinload(Bookmark.owner))
+            .where(Bookmark.id == bookmark_id,
+                   Bookmark.owner_id == user.get("id")))
     result = await db.execute(stmt)
     bookmark = result.scalar_one_or_none()
     
