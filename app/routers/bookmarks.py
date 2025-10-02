@@ -57,7 +57,6 @@ async def get_all_bookmarks(db: db_dependency,
     
     count_stmt = (select(func.count())
                   .select_from(Bookmark)
-                  .options(selectinload(Bookmark.owner))
                   .where(Bookmark.owner_id == user.get("id")))
     
     data_result = await db.execute(data_stmt)

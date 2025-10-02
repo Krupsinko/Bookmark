@@ -30,11 +30,12 @@ class Bookmark(Base):
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     tags: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, 
+                                                 server_default=func.now(),
+                                                 nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime,
                                                 server_default=func.now(),
                                                 onupdate=func.now(),
-                                                unique=False,
                                                 nullable=True)
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
     

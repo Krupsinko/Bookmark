@@ -1,6 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field, HttpUrl, ConfigDict
-from datetime import date
+from datetime import datetime
 
     
 class UserResponse(BaseModel):
@@ -19,7 +19,7 @@ class BookmarkResponse(BaseModel):
     favorite: bool
     description: Optional[str] = Field(None, max_length=255)
     tags: Optional[List[str]] = None
-    created_at: date
+    created_at: datetime
     
     
 class PaginateBookmarkReponse(BaseModel):
