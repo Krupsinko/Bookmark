@@ -13,7 +13,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[str] = mapped_column(String, nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     
     # --- RELATIONS ---
     bookmarks: Mapped[List["Bookmark"]] = relationship(
@@ -33,7 +33,9 @@ class Bookmark(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime,
                                                 server_default=func.now(),
-                                                onupdate=func.now())
+                                                onupdate=func.now(),
+                                                unique=False,
+                                                nullable=True)
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
     
     
