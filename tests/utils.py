@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.pool import StaticPool
 from sqlalchemy import select
 from passlib.context import CryptContext
+from freezegun import freeze_time
+from datetime import datetime
 
 
 from app.main import app
@@ -58,9 +60,20 @@ async def async_client():
 @pytest_asyncio.fixture(scope="function")
 async def seed_data(db_session: AsyncSession):
     # === SEEDING ===
+    TEST_DATETIME = datetime(2025, 1, 1, 12, 0, 0)
     password_hash = bcrypt_context.hash("x")
-    user = User(id=1, email="test@example.com", username="test", hashed_password=password_hash, role="user")
-    bookmark = Bookmark(id=1, title="Test", url="https://example.com", favorite=False, owner_id=1)
+    user = User(id=1,
+                email="test@example.com",
+                username="test",
+                hashed_password=password_hash,
+                role="user")
+    bookmark = Bookmark(id=1,
+                        title="Test",
+                        url="https://example.com",
+                        favorite=False,
+                        owner_id=1, 
+                        created_at=TEST_DATETIME,
+                        updated_at=TEST_DATETIME)
     db_session.add(user)
     db_session.add(bookmark)
     await db_session.commit()

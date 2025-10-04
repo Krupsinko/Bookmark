@@ -20,6 +20,7 @@ class BookmarkResponse(BaseModel):
     description: Optional[str] = Field(None, max_length=255)
     tags: Optional[List[str]] = None
     created_at: datetime
+    updated_at: datetime
     
     
 class PaginateBookmarkReponse(BaseModel):
