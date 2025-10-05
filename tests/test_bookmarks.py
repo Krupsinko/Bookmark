@@ -26,6 +26,9 @@ async def test_get_all_bookmarks_authorized(async_client: AsyncClient,
     assert item["created_at"] == TEST_DATETIME
     assert item["updated_at"] == TEST_DATETIME
 
+    test_datetime = datetime.fromisoformat(TEST_DATETIME)
+    assert isinstance(test_datetime datetime) is True    
+
 
 @pytest.mark.asyncio
 async def test_get_bookmark_authorized(async_client: AsyncClient,
