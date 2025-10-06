@@ -9,7 +9,6 @@ from ..db.database import get_db
 from ..db.models import Bookmark 
 from ..schemas.schemas import BookmarkResponse, BookmarkCreate, BookmarkUpdate, BookmarkWithOwnerResponse, PaginateBookmarkReponse
 from .users import get_current_user
-from ..utils.scraper import scrape_title, scrape_favicon
 
 
 
@@ -98,12 +97,9 @@ async def get_bookmark(db: db_dependency,
 async def create_bookmark(db: db_dependency,
                           bookmark_request: BookmarkCreate,
                           user: user_dependency):
-    title_tag = await scrape_title(str(bookmark_request.url))
+
     data = bookmark_request.model_dump(mode="json")
-    data.pop("title", None)
-    bookmark = Bookmark(**data,
-                        owner_id=user.get("id"),
-                        title=title_tag
+    bookmark = Bookmark(**data, owner_id=user.get("id"),
     )
     db.add(bookmark)
     await db.commit()

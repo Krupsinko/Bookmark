@@ -27,7 +27,7 @@ async def test_get_all_bookmarks_authorized(async_client: AsyncClient,
     assert item["updated_at"] == TEST_DATETIME
 
     test_datetime = datetime.fromisoformat(TEST_DATETIME)
-    assert isinstance(test_datetime datetime) is True    
+    assert isinstance(test_datetime, datetime)
 
 
 @pytest.mark.asyncio
@@ -62,7 +62,7 @@ async def test_create_bookmark(async_client: AsyncClient,
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert data["id"] == 1
-    assert data["title"] == "Example Domain"
+    assert data["title"] == "Test"
     assert data["url"] == "https://example.com/"
     assert "created_at" in data
     assert "updated_at" in data
@@ -71,7 +71,7 @@ async def test_create_bookmark(async_client: AsyncClient,
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))
     bookmark = result.scalar_one()
     assert bookmark is not None
-    assert bookmark.title == "Example Domain"
+    assert bookmark.title == "Test"
     assert bookmark.url == "https://example.com/"
     
     
