@@ -6,19 +6,20 @@ from contextlib import asynccontextmanager
 import asyncio
 
 
-# async def create_tables():
-#     async with engine.begin() as connection:
-#         await connection.run_sync(Base.metadata.create_all)
+async def create_tables():
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
 
 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     await create_tables()
-#     yield
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await create_tables()
+    yield
 
 
 app = FastAPI(
-    title="BookmarkManager")
+    title="BookmarkManager",
+    lifespan=lifespan)
 # W razie potrzeby stworzenia bazy na nowo - dodać parametr lifespan=lifespan
 
 @app.get("/healthy")

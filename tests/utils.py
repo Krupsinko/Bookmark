@@ -19,14 +19,11 @@ from app.db.models import Bookmark, User
 from app.routers.users import get_current_user
 
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DATABASE_URL = "postgresql+asyncpg://postgres:kanapka2002@localhost:5432/test_db"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 
-engine = create_async_engine(TEST_DATABASE_URL,
-                             connect_args={"uri": True},
-                             echo=False,
-                             poolclass=StaticPool)
+engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
 SessionLocal = async_sessionmaker(bind=engine,
                                   expire_on_commit=False,
