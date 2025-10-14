@@ -50,8 +50,9 @@ async def test_get_bookmark_authorized(async_client: AsyncClient,
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 12:00:00", tz_offset=0)
 async def test_create_bookmark(async_client: AsyncClient,
-                               db_session):
-    request_data = {"title": "Test",
+                               db_session,
+                               seed_data):
+    request_data = {"title": "Create Test",
                     "url": "https://example.com/",
                     "description": None,
                     "tags": None,
@@ -62,8 +63,8 @@ async def test_create_bookmark(async_client: AsyncClient,
                                        headers={"Authorization": "Bearer testtoken"})
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
-    assert data["id"] == 1
-    assert data["title"] == "Test"
+    assert isinstance(data["id"], int)
+    assert data["title"] == "Create Test"
     assert data["url"] == "https://example.com/"
     assert "created_at" in data
     assert "updated_at" in data
@@ -72,7 +73,7 @@ async def test_create_bookmark(async_client: AsyncClient,
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))
     bookmark = result.scalar_one()
     assert bookmark is not None
-    assert bookmark.title == "Test"
+    assert bookmark.title == "Create Test"
     assert bookmark.url == "https://example.com/"
     
     

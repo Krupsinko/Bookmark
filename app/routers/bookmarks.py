@@ -99,8 +99,7 @@ async def create_bookmark(db: db_dependency,
                           user: user_dependency):
 
     data = bookmark_request.model_dump(mode="json")
-    bookmark = Bookmark(**data, owner_id=user.get("id"),
-    )
+    bookmark = Bookmark(**data, owner_id=user.get("id"))
     db.add(bookmark)
     await db.commit()
     await db.refresh(bookmark)

@@ -21,51 +21,82 @@ from app.routers.users import get_current_user
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:kanapka2002@localhost:5432/test_db"
 
+
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
-SessionLocal = async_sessionmaker(bind=engine,
-                                  expire_on_commit=False,
-                                  class_=AsyncSession)
 
-async def override_get_db():
-    async with SessionLocal() as session:
-        yield session
-        
-def override_get_current_user():
-    return {"id":1, "sub": "test", "role": "user"}
-        
-        
-app.dependency_overrides[get_db] = override_get_db
-app.dependency_overrides[get_current_user] = override_get_current_user
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def db_engine():
+    engine = create_async_engine(url=TEST_DATABASE_URL, echo=False)
+    
+    # === SETUP ===
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    
+    # === TEARDOWN ===
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    
+    await engine.dispose()
+
+
 
 
 @pytest_asyncio.fixture(scope="function") 
-async def db_session():
+async def db_session(db_engine):
+    SessionLocal = async_sessionmaker(
+        bind=db_engine,
+        expire_on_commit=False,
+        class_=AsyncSession
+        )
+    async with SessionLocal() as session:
+        yield session  
+
+
+
+
+async def override_get_db(db_engine):
+    SessionLocal = async_sessionmaker(bind=db_engine,
+                                      expire_on_commit=False,
+                                      class_=AsyncSession)
     async with SessionLocal() as session:
         yield session
+
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_client(db_session: AsyncSession):
     
+    def override_get_current_user():
+        return {"id": 1, "sub": "test", "role": "user"}
+
+    def override_get_db():
+        yield db_session
     
-@pytest_asyncio.fixture(scope="session")
-async def async_client():
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    
     # === HTTPX TRANSPORT ===
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         yield client
-    
-
+        
+        
+        
+        
 @pytest_asyncio.fixture(scope="function")
 async def seed_data(db_session: AsyncSession):
     # === SEEDING ===
     TEST_DATETIME = datetime(2025, 1, 1, 12, 0, 0)
     password_hash = bcrypt_context.hash("x")
-    user = User(id=1,
-                email="test@example.com",
+    user = User(email="test@example.com",
                 username="test",
                 hashed_password=password_hash,
-                role="user")
-    bookmark = Bookmark(id=1,
-                        title="Test",
+                role="user",
+                is_active=True)
+    bookmark = Bookmark(title="Test",
                         url="https://example.com",
                         favorite=False,
                         owner_id=1, 
@@ -74,14 +105,3 @@ async def seed_data(db_session: AsyncSession):
     db_session.add(user)
     db_session.add(bookmark)
     await db_session.commit()
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def db_engine():
-    # === SETUP ===
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield engine
-    # === TEARDOWN ===
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
