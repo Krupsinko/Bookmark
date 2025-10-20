@@ -4,30 +4,19 @@ on:
   push:
     branches: [ main ]
 
-env:
-  # SQLAlchemy
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  
-  # JWT 
-  SECRET_KEY: ${{ secrets.SECRET_KEY }}
-  ALGORITHM: ${{ secrets.ALGORITHM }}
-
-  # PostgreSQL
-  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-  POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-
 jobs:
+  test:
+    runs-on: ubuntu-latest
 
   services:
     postgres:
       image: postgres:15
       env:
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+        POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
         ports:
           - 5432:5432
         options: >-
@@ -36,8 +25,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-  test:
-    runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -53,4 +41,7 @@ jobs:
           python -m pip install -r requirements.txt
 
       - name: Run tests
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        ALGORITHM: ${{ secrets.ALGORITHM }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pytest
