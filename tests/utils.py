@@ -22,7 +22,7 @@ from app.routers.users import get_current_user
 
 
 load_dotenv()
-TEST_DB_URL = os.getenv("TEST_DB_URL")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 
@@ -31,7 +31,7 @@ bcrypt_context = CryptContext(schemes=["bcrypt"])
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def db_engine():
-    engine = create_async_engine(url=TEST_DB_URL, echo=False)
+    engine = create_async_engine(url=TEST_DATABASE_URL, echo=False)
     
     # === SETUP ===
     async with engine.begin() as conn:
