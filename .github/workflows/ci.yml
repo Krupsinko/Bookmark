@@ -44,5 +44,5 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           ALGORITHM: ${{ secrets.ALGORITHM }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TEST_DB_URL: ${{ secrets.TEST_DB_URL }}
         run: pytest

@@ -2,8 +2,8 @@ import pytest
 import asyncio
 import pytest_asyncio
 import httpx
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 from httpx import AsyncClient
 from fastapi.testclient import TestClient
 from fastapi import status, HTTPException
@@ -21,7 +21,8 @@ from app.db.models import Bookmark, User
 from app.routers.users import get_current_user
 
 
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:123@localhost:5432/test_db"
+load_dotenv()
+TEST_DB_URL = os.getenv("TEST_DB_URL")
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 
@@ -30,7 +31,7 @@ bcrypt_context = CryptContext(schemes=["bcrypt"])
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def db_engine():
-    engine = create_async_engine(url=TEST_DATABASE_URL, echo=False)
+    engine = create_async_engine(url=TEST_DB_URL, echo=False)
     
     # === SETUP ===
     async with engine.begin() as conn:
