@@ -2,6 +2,8 @@ import pytest
 import asyncio
 import pytest_asyncio
 import httpx
+from dotenv import load_dotenv
+import os
 from httpx import AsyncClient
 from fastapi.testclient import TestClient
 from fastapi import status, HTTPException
@@ -19,7 +21,8 @@ from app.db.models import Bookmark, User
 from app.routers.users import get_current_user
 
 
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:kanapka2002@localhost:5432/test_db"
+load_dotenv()
+TEST_DATABASE_URL = os.getenv("TEST_DB")
 
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
@@ -55,15 +58,6 @@ async def db_session(db_engine):
     async with SessionLocal() as session:
         yield session  
 
-
-
-
-async def override_get_db(db_engine):
-    SessionLocal = async_sessionmaker(bind=db_engine,
-                                      expire_on_commit=False,
-                                      class_=AsyncSession)
-    async with SessionLocal() as session:
-        yield session
 
 
 
