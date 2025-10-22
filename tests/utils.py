@@ -1,17 +1,10 @@
-import pytest
-import asyncio
 import pytest_asyncio
 import httpx
 import os
 from dotenv import load_dotenv
 from httpx import AsyncClient
-from fastapi.testclient import TestClient
-from fastapi import status, HTTPException
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.pool import StaticPool
-from sqlalchemy import select
 from passlib.context import CryptContext
-from freezegun import freeze_time
 from datetime import datetime
 
 
