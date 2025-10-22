@@ -1,8 +1,9 @@
-from typing import Optional, List
-from pydantic import BaseModel, Field, HttpUrl, ConfigDict
 from datetime import datetime
+from typing import List, Optional
 
-    
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     

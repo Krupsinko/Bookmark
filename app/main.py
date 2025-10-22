@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-from .db.database import engine, Base
-from .db.models import User, Bookmark
+
 from .routers import bookmarks, users
-import asyncio
 
 app = FastAPI(
     title="BookmarkManager")

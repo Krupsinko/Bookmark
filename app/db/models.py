@@ -1,8 +1,10 @@
-from typing import List
-from .database import Base
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Integer, JSON, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from typing import List
+
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .database import Base
 
 
 class User(Base):

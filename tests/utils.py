@@ -1,18 +1,17 @@
-import pytest_asyncio
-import httpx
 import os
-from dotenv import load_dotenv
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from passlib.context import CryptContext
 from datetime import datetime
 
+import httpx
+import pytest_asyncio
+from httpx import AsyncClient
+from dotenv import load_dotenv
+from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.main import app
 from app.db.database import Base, get_db
 from app.db.models import Bookmark, User
+from app.main import app
 from app.routers.users import get_current_user
-
 
 load_dotenv()
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")

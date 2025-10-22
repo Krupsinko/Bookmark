@@ -1,16 +1,21 @@
-from typing import Annotated, List
-from fastapi import APIRouter, Depends, status, Path, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
 from enum import Enum
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ..db.database import get_db
-from ..db.models import Bookmark 
-from ..schemas.schemas import BookmarkResponse, BookmarkCreate, BookmarkUpdate, BookmarkWithOwnerResponse, PaginateBookmarkReponse
+from ..db.models import Bookmark
+from ..schemas.schemas import (
+    BookmarkCreate,
+    BookmarkResponse,
+    BookmarkUpdate,
+    BookmarkWithOwnerResponse,
+    PaginateBookmarkReponse,
+)
 from .users import get_current_user
-
-
 
 router = APIRouter(
     prefix="/bookmarks",
