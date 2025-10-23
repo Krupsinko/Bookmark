@@ -6,14 +6,14 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     username: str
-    
-    
+
+
 class BookmarkResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
- 
+
     id: int
     title: str = Field(max_length=100)
     url: HttpUrl = Field(min_length=1, max_length=2048)
@@ -22,19 +22,19 @@ class BookmarkResponse(BaseModel):
     tags: Optional[List[str]] = None
     created_at: datetime
     updated_at: datetime
-    
-    
+
+
 class PaginateBookmarkReponse(BaseModel):
     total: int
     page: int
     size: int
-    items: List[BookmarkResponse]    
+    items: List[BookmarkResponse]
 
-    
+
 class BookmarkWithOwnerResponse(BookmarkResponse):
-    owner: UserResponse    
+    owner: UserResponse
 
-    
+
 class BookmarkCreate(BaseModel):
     url: HttpUrl
     title: str = Field(max_length=100)
@@ -48,15 +48,15 @@ class BookmarkUpdate(BaseModel):
     title: str = Field(max_length=100)
     description: Optional[str] = Field(None, max_length=255)
     tags: Optional[List[str]] = Field(None, max_length=255)
-        
-        
+
+
 class CreateUserRequest(BaseModel):
     email: str
     username: str
     password: str
     role: str
-    
-    
+
+
 class CreateUserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -64,8 +64,8 @@ class CreateUserResponse(BaseModel):
     username: str
     hashed_password: str
     role: str
-        
-        
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
