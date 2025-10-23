@@ -6,13 +6,13 @@ from freezegun import freeze_time
 from sqlalchemy import select
 
 from .utils import (
-    Bookmark,
     AsyncClient,
-    bcrypt_context,
-    db_session,
-    db_engine,
-    async_client,
-    seed_data,
+    Bookmark,
+    async_client,  # noqa: F401
+    bcrypt_context,  # noqa: F401
+    db_engine,  # noqa: F401
+    db_session,  # noqa: F401
+    seed_data,  # noqa: F401
 )
 
 TEST_DATETIME = "2025-01-01T12:00:00"

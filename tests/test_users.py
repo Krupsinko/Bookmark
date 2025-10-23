@@ -13,11 +13,11 @@ from app.routers.users import authenticate_user, get_current_user
 
 from .utils import (
     AsyncClient,
+    async_client,  # noqa: F401
     bcrypt_context,
-    db_session,
-    db_engine,
-    async_client,
-    seed_data,
+    db_engine,  #  noqa: F401
+    db_session,  #  noqa: F401
+    seed_data,  #  noqa: F401
 )
 
 
@@ -150,7 +150,6 @@ async def test_create_user(db_session, async_client: AsyncClient):
 
     response = await async_client.post("/user/", json=request_data)
     assert response.status_code == status.HTTP_201_CREATED
-    data = response.json()
 
     result = await db_session.execute(
         select(User).where(User.email == request_data["email"])
