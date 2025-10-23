@@ -40,8 +40,8 @@ jobs:
       
       - name: Lint and format
         run: |
-          ruff check --fix
-          ruff format --check
+          ruff check app
+          ruff format --check app
 
       - name: Run tests
         env:

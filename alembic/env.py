@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from app.db import models  # noqa: F401
 from app.db.database import Base
-from app.db import models
 
 load_dotenv()
 db_url = os.getenv("DATABASE_URL")
