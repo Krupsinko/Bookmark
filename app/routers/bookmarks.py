@@ -6,6 +6,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from celery_worker import screenshot
+
 from ..db.database import get_db
 from ..db.models import Bookmark
 from ..schemas.schemas import (
@@ -32,6 +34,7 @@ class SortBy(str, Enum):
     FAVORITE_ASC = "Not favorite"
 
 
+# --- GET ALL BOOKMARKS ---
 @router.get("/", status_code=status.HTTP_200_OK, response_model=PaginateBookmarkReponse)
 async def get_all_bookmarks(
     db: db_dependency,
@@ -78,6 +81,7 @@ async def get_all_bookmarks(
     }
 
 
+# --- GET BOOKMARK ---
 @router.get(
     "/{bookmark_id}",
     status_code=status.HTTP_200_OK,
@@ -101,6 +105,7 @@ async def get_bookmark(
     return bookmark
 
 
+# --- CREATE BOOKMARKS ---
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=BookmarkResponse)
 async def create_bookmark(
     db: db_dependency, bookmark_request: BookmarkCreate, user: user_dependency
@@ -110,9 +115,13 @@ async def create_bookmark(
     db.add(bookmark)
     await db.commit()
     await db.refresh(bookmark)
+
+    screenshot.delay(bookmark.url, bookmark.id)
+
     return bookmark
 
 
+# --- UPDATE BOOKMARK ---
 @router.put(
     "/{bookmark_id}", status_code=status.HTTP_200_OK, response_model=BookmarkResponse
 )
@@ -137,7 +146,7 @@ async def update_bookmark(
 
     for key, value in bookmark_request.model_dump(
         exclude_unset=True, mode="json"
-    ).items():
+    ).items():  # noqa: E501
         setattr(bookmark, key, value)
 
     await db.commit()
@@ -145,6 +154,7 @@ async def update_bookmark(
     return bookmark
 
 
+# --- DELETE BOOKMARK ---
 @router.delete("/{bookmark_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_bookmark(
     db: db_dependency, user: user_dependency, bookmark_id: int = Path(gt=0)

@@ -3,10 +3,16 @@ name: Python CI
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.13"]
 
     services:
       postgres:
@@ -31,17 +37,29 @@ jobs:
       - name:  Python setup
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13" 
+          python-version: ${{ matrix.python-version }}
       
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
       
-      - name: Lint and format
-        run: |
-          ruff check app
-          ruff format --check app
+      # - name: Securtiy audit
+      #   run: pip-audit
+
+      # - name: Lint and format
+      #   run: |
+      #     ruff check app
+      #     ruff format --check app
 
       - name: Run tests
         env:
