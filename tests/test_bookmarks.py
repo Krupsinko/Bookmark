@@ -80,6 +80,8 @@ async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data)
     assert "created_at" in data
     assert "updated_at" in data
 
+    async_client.mock_page_screenshot.delay.assert_called_once()
+
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))
     bookmark = result.scalar_one()
     assert bookmark is not None
@@ -119,4 +121,4 @@ async def test_delete_bookmark(async_client: AsyncClient, db_session, seed_data)
     result = await db_session.execute(
         select(Bookmark).where(Bookmark.id == bookmark_id)
     )
-    assert result.scalar_one_or_none() == None
+    assert result.scalar_one_or_none() is None

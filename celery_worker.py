@@ -17,7 +17,7 @@ celery_app = Celery(
 )
 
 
-def run(playwright: Playwright, url: str) -> str:
+def run(url: str) -> str:
     url_hash = hashlib.sha3_256(url.encode()).hexdigest()
     screenshot_url = f"{os.path.join(SCRENSHOT_DIRECTORY, url_hash)}.png"
 
@@ -45,7 +45,8 @@ def run(playwright: Playwright, url: str) -> str:
 @celery_app.task(
     autoretry_for=(PlaywrightTimeout,), retry_kwargs={"max retries": 3, "countdown": 10}
 )
-def screenshot(url: str, bookmark_id: int) -> None:
+def page_screenshot(url: str, bookmark_id: int):
+    
     screenshot_url = run(url)
 
     with SyncSessionLocal() as session:
@@ -58,8 +59,3 @@ def screenshot(url: str, bookmark_id: int) -> None:
             session.refresh(bookmark)
         else:
             print("Bookmark was deleted before worker finished the job.")
-
-
-# TODO: Za pomocą alembica dodać kolumne "path" do tabeli bookmark - zawierającą URL do
-# screenshotów(zmienna 'filename'). We funkcji screenshot połączyć się z bazą i dodać
-# wszystko do odpowiedniego użytkownika pozdrwaiam

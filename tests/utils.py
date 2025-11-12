@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest_asyncio
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ from app.db.database import Base, get_db
 from app.db.models import Bookmark, User
 from app.main import app
 from app.routers.users import get_current_user
+from celery_worker import page_screenshot
 
 load_dotenv()
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
@@ -55,10 +57,12 @@ async def async_client(db_session: AsyncSession):
     app.dependency_overrides[get_current_user] = override_get_current_user
 
     # === HTTPX TRANSPORT ===
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        yield client
+    with patch("app.routers.bookmarks.page_screenshot") as mock_page_screenshot:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            client.mock_page_screenshot = mock_page_screenshot
+            yield client
 
 
 @pytest_asyncio.fixture(scope="function")
