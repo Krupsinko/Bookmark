@@ -7,7 +7,7 @@ class PostgresSettings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         env_prefix="POSTGRES_",
-        extra="allow"
+        extra="ignore"
 )   
     
     DB: str
@@ -27,7 +27,18 @@ class PostgresSettings(BaseSettings):
     def TEST_DATABASE_URL(self) -> str:
         test_db_url = f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.TEST_DB}"
         return test_db_url
-    
-    
+
+class EncryptSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+    SECRET_KEY: str
+    ALGORITHM: str
+
+
+encrypt_settings = EncryptSettings()
 settings = PostgresSettings()
 

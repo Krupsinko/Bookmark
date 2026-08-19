@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
@@ -9,12 +8,13 @@ from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..config import encrypt_settings
 from ..db.database import get_db
 from ..db.models import User
 from ..schemas.schemas import CreateUserRequest, CreateUserResponse, Token
 
-ALGORITHM = os.getenv("ALGORITHM")
-SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = encrypt_settings.ALGORITHM
+SECRET_KEY = encrypt_settings.SECRET_KEY
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/token")

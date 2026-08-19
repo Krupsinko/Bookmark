@@ -158,6 +158,6 @@ async def test_create_user(db_session, async_client: AsyncClient):
 
     assert user.email == request_data["email"]
     assert user.username == request_data["username"]
-    assert user.password != request_data["password"]
+    assert user.hashed_password != request_data["password"]
     assert bcrypt_context.verify(request_data["password"], user.hashed_password)
     assert user.role == request_data["role"]

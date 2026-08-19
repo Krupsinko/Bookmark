@@ -1,9 +1,7 @@
-import os
 from datetime import datetime
 from unittest.mock import patch
 
 import pytest_asyncio
-from dotenv import load_dotenv
 from httpx import ASGITransport, AsyncClient
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -14,8 +12,6 @@ from app.db.models import Bookmark, User
 from app.main import app
 from app.routers.users import get_current_user
 from celery_worker import page_screenshot
-
-load_dotenv()
 
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
