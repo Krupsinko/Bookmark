@@ -1,6 +1,2 @@
 [tool.ruff.lint]
-# Włącz podstawowe zestawy reguł:
-# E - pycodestyle
-# F - Pyflakes
-# I - isort
 select = ["E", "F", "I"]

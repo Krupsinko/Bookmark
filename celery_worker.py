@@ -2,8 +2,8 @@ import hashlib
 import os
 
 from celery import Celery
-from playwright.sync_api import Playwright, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
+from playwright.sync_api import sync_playwright
 from sqlalchemy import select
 
 from app.db.database import SyncSessionLocal

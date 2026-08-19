@@ -8,6 +8,7 @@ from httpx import ASGITransport, AsyncClient
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.config import settings
 from app.db.database import Base, get_db
 from app.db.models import Bookmark, User
 from app.main import app
@@ -15,7 +16,8 @@ from app.routers.users import get_current_user
 from celery_worker import page_screenshot
 
 load_dotenv()
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+
+TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 
@@ -60,7 +62,8 @@ async def async_client(db_session: AsyncSession):
     with patch("app.routers.bookmarks.page_screenshot") as mock_page_screenshot:
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        ) as client: #HTTPX connects with FastAPI in memory
+                     #insted of creating real server
             client.mock_page_screenshot = mock_page_screenshot
             yield client
 

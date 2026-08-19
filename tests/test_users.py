@@ -147,8 +147,8 @@ async def test_create_user(db_session, async_client: AsyncClient):
         "password": "x",
         "role": "user",
     }
-
     response = await async_client.post("/user/", json=request_data)
+    
     assert response.status_code == status.HTTP_201_CREATED
 
     result = await db_session.execute(
@@ -158,5 +158,6 @@ async def test_create_user(db_session, async_client: AsyncClient):
 
     assert user.email == request_data["email"]
     assert user.username == request_data["username"]
+    assert user.password != request_data["password"]
     assert bcrypt_context.verify(request_data["password"], user.hashed_password)
     assert user.role == request_data["role"]

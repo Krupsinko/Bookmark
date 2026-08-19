@@ -94,7 +94,7 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
         hashed_password=bcrypt_context.hash(user_request.password),
         role=user_request.role,
     )
-    db.add(new_user)
+    db.add(new_user)    
     await db.commit()
     await db.refresh(new_user)
     return new_user
