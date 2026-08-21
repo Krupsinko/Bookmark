@@ -13,7 +13,7 @@ SCRENSHOT_DIRECTORY = "screenshots"
 os.makedirs(SCRENSHOT_DIRECTORY, exist_ok=True)
 
 celery_app = Celery(
-    "Bookmark", broker="redis://localhost:6379/0", backend="redis://localhost:6379/1"
+    "Bookmark", broker="redis://redis:6379/0", backend="redis://redis:6379/1"
 )
 
 
@@ -43,7 +43,7 @@ def run(url: str) -> str:
 
 
 @celery_app.task(
-    autoretry_for=(PlaywrightTimeout,), retry_kwargs={"max retries": 3, "countdown": 10}
+    autoretry_for=(PlaywrightTimeout,), retry_kwargs={"max_retries": 3, "countdown": 10}
 )
 def page_screenshot(url: str, bookmark_id: int):
     
