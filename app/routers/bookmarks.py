@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy import func, select
@@ -110,13 +111,15 @@ async def get_bookmark(
 async def create_bookmark(
     db: db_dependency, bookmark_request: BookmarkCreate, user: user_dependency
 ):
+    owner_id = user.get("id")
+    s3_key = f"user/{owner_id}/{uuid4()}.png"
     data = bookmark_request.model_dump(mode="json")
-    bookmark = Bookmark(**data, owner_id=user.get("id"))
+    bookmark = Bookmark(**data, owner_id=owner_id, s3_key=s3_key)
     db.add(bookmark)
     await db.commit()
     await db.refresh(bookmark)
-
-    page_screenshot.delay(bookmark.url, bookmark.id)
+    
+    page_screenshot.delay(bookmark.url, bookmark.id, s3_key)
 
     return bookmark
 

@@ -32,6 +32,7 @@ class Bookmark(Base):
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     tags: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
+    s3_key: Mapped[str] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=True
     )
@@ -39,7 +40,6 @@ class Bookmark(Base):
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=True
     )
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    screenshot_url: Mapped[str] = mapped_column(String, nullable=True)
 
     # --- RELATIONS ---
     owner_id: Mapped[int] = mapped_column(

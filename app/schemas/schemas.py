@@ -42,7 +42,6 @@ class BookmarkCreate(BaseModel):
     tags: Optional[List[str]] = Field(None, max_length=255)
     favorite: bool = Field(True)
 
-
 class BookmarkUpdate(BaseModel):
     url: HttpUrl
     title: str = Field(max_length=100)
