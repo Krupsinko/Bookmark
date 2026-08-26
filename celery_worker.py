@@ -4,6 +4,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 from sqlalchemy import select
 
+from app.config import AwsSetting
 from app.db.database import SyncSessionLocal
 from app.db.models import Bookmark
 
@@ -12,7 +13,7 @@ celery_app = Celery(
 )
 
 s3 = boto3.client("s3")
-S3_BUCKET = "bookmark-screenshots"
+S3_BUCKET_NAME = AwsSetting.S3_BUCKET_NAME
 
 def run(url: str, s3_key) -> str:
     try:
@@ -29,7 +30,7 @@ def run(url: str, s3_key) -> str:
                             raise
             
             s3.put_object(
-                Bucket=S3_BUCKET,
+                Bucket=S3_BUCKET_NAME,
                 Key=s3_key,
                 Body=screenshot,
                 ContentType="image/png"
@@ -47,14 +48,14 @@ def run(url: str, s3_key) -> str:
 )
 def page_screenshot(url: str, bookmark_id: int, s3_key: str):
     
-    screenshot_url = run(url, s3_key)
+    s3_object_key = run(url, s3_key)
 
     with SyncSessionLocal() as session:
         stmt = select(Bookmark).where(Bookmark.id == bookmark_id)
         result = session.execute(stmt)
         bookmark = result.scalar_one_or_none()
         if bookmark:
-            bookmark.s3_key = screenshot_url
+            bookmark.s3_key = s3_object_key
             session.commit()
             session.refresh(bookmark)
         else:

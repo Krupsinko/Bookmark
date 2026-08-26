@@ -22,6 +22,7 @@ class BookmarkResponse(BaseModel):
     tags: Optional[List[str]] = None
     created_at: datetime
     updated_at: datetime
+    s3_key: str | None
 
 
 class PaginateBookmarkReponse(BaseModel):

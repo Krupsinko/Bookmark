@@ -32,7 +32,7 @@ class Bookmark(Base):
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     tags: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
-    s3_key: Mapped[str] = mapped_column(String, nullable=True)
+    s3_key: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=True
     )

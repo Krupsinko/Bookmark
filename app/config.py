@@ -38,7 +38,17 @@ class EncryptSettings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
 
-
+class AwsSetting(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+        
+    S3_BUCKET_NAME: str
+    
+    
+aws_settings = AwsSetting()
 encrypt_settings = EncryptSettings()
 settings = PostgresSettings()
 
