@@ -127,12 +127,12 @@ resource "aws_subnet" "private_b" {
 # PRIVATE SUBNETS ROUTE TABLE
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
-  
+
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.main.id
   }
-  
+
   tags = {
     Name = "bookmark-private-route-table"
   }
@@ -144,53 +144,4 @@ resource "aws_route_table_association" "private_a" {
 resource "aws_route_table_association" "private_b" {
   subnet_id      = aws_subnet.private_b.id
   route_table_id = aws_route_table.private.id
-}
-
-
-
-
-# ALB
-resource "aws_lb" "alb" {
-  name               = "bookmark-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets = [aws_subnet.public_a.id,
-    aws_subnet.public_b.id
-  ]
-
-  enable_deletion_protection = false
-
-  tags = {
-    Environment = "dev"
-  }
-}
-resource "aws_lb_target_group" "alb_target_group" {
-  name        = "ecs-alb-tg"
-  port        = 8000
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = aws_vpc.main.id
-
-  health_check {
-    path                = "/health"
-    protocol            = "HTTP"
-    port                = "traffic-port"
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    interval            = 30
-    timeout             = 5
-  }
-}
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.alb.arn
-
-  port     = 80
-  protocol = "HTTP"
-
-  default_action {
-    type = "forward"
-
-    target_group_arn = aws_lb_target_group.alb_target_group.arn
-  }
 }

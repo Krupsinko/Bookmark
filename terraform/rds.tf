@@ -1,37 +1,4 @@
-resource "aws_db_subnet_group" "bookmark" {
-  name = "bookmark-db-subnet-group"
-
-  subnet_ids = [
-    aws_subnet.private_a.id,
-    aws_subnet.private_b.id
-  ]
-
-  tags = {
-    Name = "bookmark-db-subnet-group"
-  }
-}
-
-resource "aws_security_group" "rds" {
-  name        = "bookmark-rds-sg"
-  description = "Security group for Bookmark RDS"
-  vpc_id      = aws_vpc.main.id
-
-  tags = {
-    Name = "bookmark-rds-sg"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "rds_postgres" {
-  security_group_id = aws_security_group.rds.id
-
-  referenced_security_group_id = aws_security_group.ecs.id
-
-  ip_protocol = "tcp"
-  from_port   = 5432
-  to_port     = 5432
-}
-
-
+# DB INSTANCE
 resource "aws_db_instance" "bookmark" {
   identifier = "bookmark-db"
 
@@ -61,4 +28,41 @@ resource "aws_db_instance" "bookmark" {
     Name = "bookmark-db"
   }
 }
+
+
+resource "aws_db_subnet_group" "bookmark" {
+  name = "bookmark-db-subnet-group"
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  tags = {
+    Name = "bookmark-db-subnet-group"
+  }
+}
+
+
+# RDS SECURITY GROUP
+resource "aws_security_group" "rds" {
+  name        = "bookmark-rds-sg"
+  description = "Security group for Bookmark RDS"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "bookmark-rds-sg"
+  }
+}
+resource "aws_vpc_security_group_ingress_rule" "rds_postgres" {
+  security_group_id = aws_security_group.rds.id
+
+  referenced_security_group_id = aws_security_group.ecs.id
+
+  ip_protocol = "tcp"
+  from_port   = 5432
+  to_port     = 5432
+}
+
+
 
