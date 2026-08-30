@@ -203,5 +203,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Random
+# Terraform
 .terraform/
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
