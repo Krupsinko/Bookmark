@@ -1,19 +1,25 @@
+import os
+
 import boto3
 from celery import Celery
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 from sqlalchemy import select
 
-from app.config import AwsSetting
+from app.config import aws_settings
 from app.db.database import SyncSessionLocal
 from app.db.models import Bookmark
 
+redis_host = os.environ["REDIS_HOST"]
+
 celery_app = Celery(
-    "Bookmark", broker="redis://redis:6379/0", backend="redis://redis:6379/1"
+    "Bookmark", 
+    broker=f"redis://{redis_host}:6379/0", 
+    backend=f"redis://{redis_host}:6379/1"
 )
 
 s3 = boto3.client("s3")
-S3_BUCKET_NAME = AwsSetting.S3_BUCKET_NAME
+S3_BUCKET_NAME = aws_settings.S3_BUCKET_NAME
 
 def run(url: str, s3_key) -> str:
     try:

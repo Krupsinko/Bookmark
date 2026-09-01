@@ -62,7 +62,6 @@ class CreateUserResponse(BaseModel):
 
     email: str
     username: str
-    hashed_password: str
     role: str
 
 

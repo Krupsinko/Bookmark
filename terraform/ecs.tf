@@ -1,11 +1,11 @@
 # ECS SERVICE FOR API
 resource "aws_ecs_service" "api" {
-  name = "bookmark-api"
-  cluster = aws_ecs_cluster.bookmark.id
+  name            = "bookmark-api"
+  cluster         = aws_ecs_cluster.bookmark.id
   task_definition = aws_ecs_task_definition.api.arn
 
   desired_count = 1
-  launch_type = "FARGATE"
+  launch_type   = "FARGATE"
 
   network_configuration {
     subnets = [
@@ -31,7 +31,7 @@ resource "aws_ecs_task_definition" "api" {
   family = "bookmark-api"
 
   requires_compatibilities = ["FARGATE"]
-  network_mode = "awsvpc"
+  network_mode             = "awsvpc"
 
   cpu    = "256"
   memory = "512"
@@ -40,8 +40,8 @@ resource "aws_ecs_task_definition" "api" {
 
   container_definitions = jsonencode([
     {
-      name  = "api"
-      image = "${aws_ecr_repository.api.repository_url}:latest"
+      name      = "api"
+      image     = "${aws_ecr_repository.api.repository_url}:latest"
       essential = true
 
       portMappings = [
@@ -50,6 +50,33 @@ resource "aws_ecs_task_definition" "api" {
           protocol      = "tcp"
         }
       ]
+
+      environment = [
+        {
+          name  = "REDIS_HOST"
+          value = aws_elasticache_replication_group.redis.primary_endpoint_address
+        },
+        {
+          name  = "DB_HOST"
+          value = aws_db_instance.bookmark.address
+        },
+        {
+          name  = "DB_PORT"
+          value = aws_db_instance.bookmark.port
+        },
+        {
+          name  = "DB_NAME"
+          value = aws_db_instance.bookmark.db_name
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "DB_CREDENTIALS"
+          valueFrom = aws_db_instance.bookmark.master_user_secret[0].secret_arn
+        }
+      ]
+
     }
   ])
 
@@ -88,7 +115,7 @@ resource "aws_ecs_task_definition" "celery" {
   family = "bookmark-celery"
 
   requires_compatibilities = ["FARGATE"]
-  network_mode              = "awsvpc"
+  network_mode             = "awsvpc"
 
   cpu    = "256"
   memory = "512"
@@ -105,7 +132,7 @@ resource "aws_ecs_task_definition" "celery" {
       command = [
         "celery",
         "-A",
-        "app.celery_worker",
+        "celery_worker",
         "worker",
         "--loglevel=info"
       ]
@@ -134,16 +161,15 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_allow_traffic_from_alb" {
   security_group_id            = aws_security_group.ecs.id
   referenced_security_group_id = aws_security_group.alb.id
   ip_protocol                  = "TCP"
-  to_port                      = 8000
   from_port                    = 8000
+  to_port                      = 8000
 }
 resource "aws_vpc_security_group_egress_rule" "ecs_all" {
   security_group_id = aws_security_group.ecs.id
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
 }
-
-
+# Dlaczego na wszystko skoro komunikuje się tylko z RDS i Redisem(chyba)
 
 
 

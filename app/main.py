@@ -6,7 +6,7 @@ app = FastAPI(title="BookmarkManager")
 # W razie potrzeby stworzenia bazy na nowo - dodać parametr lifespan=lifespan
 
 
-@app.get("/healthy")
+@app.get("/health")
 def health_check():
     return {"status": "Healthy"}
 
