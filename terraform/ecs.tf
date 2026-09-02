@@ -57,24 +57,29 @@ resource "aws_ecs_task_definition" "api" {
           value = aws_elasticache_replication_group.redis.primary_endpoint_address
         },
         {
-          name  = "DB_HOST"
+          name  = "POSTGRES_HOST"
           value = aws_db_instance.bookmark.address
         },
         {
-          name  = "DB_PORT"
-          value = aws_db_instance.bookmark.port
+          name  = "POSTGRES_PORT"
+          value = tostring(aws_db_instance.bookmark.port)
         },
         {
-          name  = "DB_NAME"
+          name  = "POSTGRES_DB"
           value = aws_db_instance.bookmark.db_name
         }
       ]
 
       secrets = [
         {
-          name      = "DB_CREDENTIALS"
-          valueFrom = aws_db_instance.bookmark.master_user_secret[0].secret_arn
+          name      = "POSTGRES_USER"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:username:"
+        },
+        {
+          name      = "POSTGRES_PASSWORD"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
         }
+
       ]
 
     }
@@ -126,7 +131,7 @@ resource "aws_ecs_task_definition" "celery" {
   container_definitions = jsonencode([
     {
       name      = "celery"
-      image     = "${aws_ecr_repository.celery.repository_url}:latest"
+      image     = "${aws_ecr_repository.api.repository_url}:latest"
       essential = true
 
       command = [
@@ -136,8 +141,17 @@ resource "aws_ecs_task_definition" "celery" {
         "worker",
         "--loglevel=info"
       ]
+
+      environment = [
+        { name  = "REDIS_HOST",
+          value = aws_elasticache_replication_group.redis.primary_endpoint_address
+        }
+      ]
+
     }
   ])
+
+
 
   tags = {
     Name = "bookmark-celery"

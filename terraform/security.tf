@@ -68,3 +68,22 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+
+resource "aws_iam_policy" "ecs_secrets_manager" {
+  name = "ecs-secrets-manager"
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "secretsmanager:GetSecretValue"
+        ],
+        "Resource" : [
+          "${aws_db_instance.bookmark.master_user_secret}"
+        ]
+      }
+    ]
+  })
+}
