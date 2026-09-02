@@ -57,26 +57,26 @@ resource "aws_ecs_task_definition" "api" {
           value = aws_elasticache_replication_group.redis.primary_endpoint_address
         },
         {
-          name  = "POSTGRES_HOST"
+          name  = "DB_HOST"
           value = aws_db_instance.bookmark.address
         },
         {
-          name  = "POSTGRES_PORT"
+          name  = "DB_PORT"
           value = tostring(aws_db_instance.bookmark.port)
         },
         {
-          name  = "POSTGRES_DB"
+          name  = "DB_NAME"
           value = aws_db_instance.bookmark.db_name
         }
       ]
 
       secrets = [
         {
-          name      = "POSTGRES_USER"
-          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:username:"
+          name      = "DB_USER"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:username::"
         },
         {
-          name      = "POSTGRES_PASSWORD"
+          name      = "DB_PASSWORD"
           valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
         }
 
@@ -143,9 +143,34 @@ resource "aws_ecs_task_definition" "celery" {
       ]
 
       environment = [
-        { name  = "REDIS_HOST",
+        {
+          name  = "REDIS_HOST"
           value = aws_elasticache_replication_group.redis.primary_endpoint_address
+        },
+        {
+          name  = "DB_HOST"
+          value = aws_db_instance.bookmark.address
+        },
+        {
+          name  = "POSTGRES_PORT"
+          value = tostring(aws_db_instance.bookmark.port)
+        },
+        {
+          name  = "POSTGRES_DB"
+          value = aws_db_instance.bookmark.db_name
         }
+      ]
+
+      secrets = [
+        {
+          name      = "POSTGRES_USER"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:username::"
+        },
+        {
+          name      = "POSTGRES_PASSWORD"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
+        }
+
       ]
 
     }

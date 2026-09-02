@@ -1,4 +1,4 @@
-import os
+
 
 import boto3
 from celery import Celery
@@ -6,11 +6,11 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 from sqlalchemy import select
 
-from app.config import aws_settings
+from app.config import aws_settings, settings
 from app.db.database import SyncSessionLocal
 from app.db.models import Bookmark
 
-redis_host = os.environ["REDIS_HOST"]
+redis_host = settings.REDIS_HOST
 
 celery_app = Celery(
     "Bookmark", 

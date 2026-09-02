@@ -74,16 +74,21 @@ resource "aws_iam_policy" "ecs_secrets_manager" {
 
   policy = jsonencode({
     "Version" : "2012-10-17",
-    "Statement" : [
+
+    Statement = [
       {
-        "Effect" : "Allow",
-        "Action" : [
+        Effect = "Allow",
+
+        Action = [
           "secretsmanager:GetSecretValue"
         ],
-        "Resource" : [
-          "${aws_db_instance.bookmark.master_user_secret}"
-        ]
+
+        Resource = aws_db_instance.bookmark.master_user_secret[0].secret_arn
       }
     ]
   })
+}
+resource "aws_iam_role_policy_attachment" "ecs_secrets_manager" {
+  role       = aws_iam_role.ecs_execution.name
+  policy_arn = aws_iam_policy.ecs_secrets_manager.arn
 }
