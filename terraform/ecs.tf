@@ -67,6 +67,14 @@ resource "aws_ecs_task_definition" "api" {
         {
           name  = "DB_NAME"
           value = aws_db_instance.bookmark.db_name
+        },
+        {
+          name  = "SECRET_KEY"
+          value = "?"
+        },
+        {
+          name  = "ALGORITHM"
+          value = "?"
         }
       ]
 
@@ -152,12 +160,16 @@ resource "aws_ecs_task_definition" "celery" {
           value = aws_db_instance.bookmark.address
         },
         {
-          name  = "POSTGRES_PORT"
+          name  = "DB_PORT"
           value = tostring(aws_db_instance.bookmark.port)
         },
         {
-          name  = "POSTGRES_DB"
+          name  = "DB_NAME"
           value = aws_db_instance.bookmark.db_name
+        },
+        {
+          name  = "S3_BUCKET_NAME"
+          value = aws_s3_bucket.screenshots.bucket
         }
       ]
 
@@ -175,8 +187,6 @@ resource "aws_ecs_task_definition" "celery" {
 
     }
   ])
-
-
 
   tags = {
     Name = "bookmark-celery"
@@ -208,7 +218,7 @@ resource "aws_vpc_security_group_egress_rule" "ecs_all" {
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
 }
-# Dlaczego na wszystko skoro komunikuje się tylko z RDS i Redisem(chyba)
+
 
 
 
