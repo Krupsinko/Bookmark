@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
-from celery_worker import page_screenshot, run
+from celery.celery_worker import page_screenshot, run
 
 TEST_URL = "https://example.com"
 TEST_BOOKMARK_ID = 1

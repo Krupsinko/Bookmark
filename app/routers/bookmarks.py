@@ -7,8 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from celery_worker import page_screenshot
-
+from ...celery.celery_worker import page_screenshot
 from ..db.database import get_db
 from ..db.models import Bookmark
 from ..schemas.schemas import (

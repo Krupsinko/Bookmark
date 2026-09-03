@@ -8,10 +8,12 @@ from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config import encrypt_settings
+from ..config import EncryptSettings
 from ..db.database import get_db
 from ..db.models import User
 from ..schemas.schemas import CreateUserRequest, CreateUserResponse, Token
+
+encrypt_settings = EncryptSettings()
 
 ALGORITHM = encrypt_settings.ALGORITHM
 SECRET_KEY = encrypt_settings.SECRET_KEY

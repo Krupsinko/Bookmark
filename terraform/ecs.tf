@@ -69,12 +69,8 @@ resource "aws_ecs_task_definition" "api" {
           value = aws_db_instance.bookmark.db_name
         },
         {
-          name  = "SECRET_KEY"
-          value = "?"
-        },
-        {
           name  = "ALGORITHM"
-          value = "?"
+          value = "HS256"
         }
       ]
 
@@ -86,8 +82,11 @@ resource "aws_ecs_task_definition" "api" {
         {
           name      = "DB_PASSWORD"
           valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
+        },
+        {
+          name     = "SECRET_KEY"
+          valueFrom = aws_secretsmanager_secret.jwt_secret.arn
         }
-
       ]
 
     }
@@ -156,33 +155,9 @@ resource "aws_ecs_task_definition" "celery" {
           value = aws_elasticache_replication_group.redis.primary_endpoint_address
         },
         {
-          name  = "DB_HOST"
-          value = aws_db_instance.bookmark.address
-        },
-        {
-          name  = "DB_PORT"
-          value = tostring(aws_db_instance.bookmark.port)
-        },
-        {
-          name  = "DB_NAME"
-          value = aws_db_instance.bookmark.db_name
-        },
-        {
           name  = "S3_BUCKET_NAME"
           value = aws_s3_bucket.screenshots.bucket
         }
-      ]
-
-      secrets = [
-        {
-          name      = "POSTGRES_USER"
-          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:username::"
-        },
-        {
-          name      = "POSTGRES_PASSWORD"
-          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
-        }
-
       ]
 
     }
@@ -218,6 +193,24 @@ resource "aws_vpc_security_group_egress_rule" "ecs_all" {
   ip_protocol       = "-1"
   cidr_ipv4         = "0.0.0.0/0"
 }
+
+
+
+
+# JWT SECRET KEY
+ephemeral "random_password" "jwt_secret" {
+  length  = 64
+  special = false
+}
+resource "aws_secretsmanager_secret" "jwt_secret" {
+  name = "bookmark-jwt-secret"
+}
+resource "aws_secretsmanager_secret_version" "jwt_secret" {
+  secret_id                = aws_secretsmanager_secret.jwt_secret.id
+  secret_string_wo         = ephemeral.random_password.jwt_secret.result
+  secret_string_wo_version = 1
+}
+
 
 
 

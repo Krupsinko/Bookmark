@@ -11,7 +11,7 @@ from app.db.database import Base, get_db
 from app.db.models import Bookmark, User
 from app.main import app
 from app.routers.users import get_current_user
-from celery_worker import page_screenshot
+from celery.celery_worker import page_screenshot
 
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 

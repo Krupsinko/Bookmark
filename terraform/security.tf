@@ -83,7 +83,10 @@ resource "aws_iam_policy" "ecs_secrets_manager" {
           "secretsmanager:GetSecretValue"
         ],
 
-        Resource = aws_db_instance.bookmark.master_user_secret[0].secret_arn
+        Resource = [
+          aws_db_instance.bookmark.master_user_secret[0].secret_arn,
+          aws_secretsmanager_secret.jwt_secret.arn
+        ]
       }
     ]
   })

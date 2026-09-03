@@ -2,7 +2,7 @@ from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class PostgresSettings(BaseSettings):
+class DatabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -45,9 +45,12 @@ class AwsSetting(BaseSettings):
     )
         
     S3_BUCKET_NAME: str
-    
-    
-aws_settings = AwsSetting()
-encrypt_settings = EncryptSettings()
-settings = PostgresSettings()
 
+class RedisSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+    
+    REDIS_HOST: str
