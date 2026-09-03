@@ -20,11 +20,6 @@ class DatabaseSettings(BaseSettings):
         db_url = f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         return db_url
 
-    @computed_field
-    def TEST_DATABASE_URL(self) -> str:
-        test_db_url = f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.TEST_DB}"
-        return test_db_url
-
 class EncryptSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",

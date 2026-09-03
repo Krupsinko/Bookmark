@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from worker.celery_worker import page_screenshot
+from worker.celery_config import celery_app
 
 from ..db.database import get_db
 from ..db.models import Bookmark
@@ -119,8 +119,10 @@ async def create_bookmark(
     await db.commit()
     await db.refresh(bookmark)
     
-    page_screenshot.delay(bookmark.url, s3_key)
-
+    celery_app.send_task(
+        "bookmark.page_screenshot",
+        args=[bookmark.url, s3_key],
+)
     return bookmark
 
 
