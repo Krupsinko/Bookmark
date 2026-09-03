@@ -144,7 +144,7 @@ resource "aws_ecs_task_definition" "celery" {
       command = [
         "celery",
         "-A",
-        "celery_worker",
+        "worker.celery_worker:celery_app",
         "worker",
         "--loglevel=info"
       ]

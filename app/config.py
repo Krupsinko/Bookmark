@@ -14,8 +14,6 @@ class DatabaseSettings(BaseSettings):
     DB_PASSWORD: str
     DB_PORT: int
     DB_HOST: str
-    TEST_DB: str
-    REDIS_HOST: str
 
     @computed_field
     def DATABASE_URL(self) -> str:

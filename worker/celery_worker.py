@@ -1,6 +1,7 @@
-from celery_config import celery_app, s3, s3_bucket_name
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
+
+from .celery_config import celery_app, s3, s3_bucket_name
 
 
 @celery_app.task(

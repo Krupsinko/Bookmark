@@ -1,7 +1,7 @@
 import boto3
+from celery import Celery
 
 from app.config import AwsSetting, RedisSettings
-from celery import Celery
 
 aws_settings = AwsSetting()
 redis_settings = RedisSettings()
