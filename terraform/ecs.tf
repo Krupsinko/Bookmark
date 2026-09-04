@@ -84,7 +84,7 @@ resource "aws_ecs_task_definition" "api" {
           valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
         },
         {
-          name     = "SECRET_KEY"
+          name      = "SECRET_KEY"
           valueFrom = aws_secretsmanager_secret.jwt_secret.arn
         }
       ]

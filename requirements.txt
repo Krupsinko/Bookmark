@@ -33,7 +33,7 @@ passlib==1.7.4
 playwright==1.55.0
 pluggy==1.6.0
 prompt_toolkit==3.0.53
-psycopg2==2.9.11
+psycopg2-binary==2.9.12
 pyasn1==0.6.4
 pydantic==2.11.7
 pydantic-settings==2.15.0
