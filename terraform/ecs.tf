@@ -25,6 +25,10 @@ resource "aws_ecs_service" "api" {
     container_name   = "api"
     container_port   = 8000
   }
+  
+  depends_on = [
+  aws_lb_listener.http
+  ]
 }
 # TASK DEFINITION FOR API
 resource "aws_ecs_task_definition" "api" {
@@ -50,6 +54,17 @@ resource "aws_ecs_task_definition" "api" {
           protocol      = "tcp"
         }
       ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.api.name
+          "awslogs-region"        = "eu-central-1"
+          "awslogs-stream-prefix" = "api"
+        }
+      }
+
 
       environment = [
         {
@@ -148,6 +163,17 @@ resource "aws_ecs_task_definition" "celery" {
         "worker",
         "--loglevel=info"
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.celery.name
+          "awslogs-region"        = "eu-central-1"
+          "awslogs-stream-prefix" = "celery"
+        }
+      }
+
+
 
       environment = [
         {
