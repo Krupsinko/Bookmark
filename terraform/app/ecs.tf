@@ -25,9 +25,9 @@ resource "aws_ecs_service" "api" {
     container_name   = "api"
     container_port   = 8000
   }
-  
+
   depends_on = [
-  aws_lb_listener.http
+    aws_lb_listener.http
   ]
 }
 # TASK DEFINITION FOR API
@@ -45,7 +45,7 @@ resource "aws_ecs_task_definition" "api" {
   container_definitions = jsonencode([
     {
       name      = "api"
-      image     = "${aws_ecr_repository.api.repository_url}:latest"
+      image     = "${data.aws_ecr_repository.api.repository_url}:${var.image_tag}"
       essential = true
 
       portMappings = [
@@ -153,7 +153,7 @@ resource "aws_ecs_task_definition" "celery" {
   container_definitions = jsonencode([
     {
       name      = "celery"
-      image     = "${aws_ecr_repository.api.repository_url}:latest"
+      image     = "${data.aws_ecr_repository.api.repository_url}:${var.image_tag}"
       essential = true
 
       command = [
@@ -249,14 +249,8 @@ resource "aws_ecs_cluster" "bookmark" {
     Name = "bookmark-cluster"
   }
 }
-resource "aws_ecr_repository" "api" {
+
+
+data "aws_ecr_repository" "api" {
   name = "bookmark-api"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Name = "bookmark-api"
-  }
 }
