@@ -63,7 +63,7 @@ resource "aws_iam_policy" "github_ecr_push" {
           "ecr:PutImage"
         ]
 
-        Resource = data.aws_ecr_repository.api.arn
+        Resource = aws_ecr_repository.api.arn
       }
     ]
   })

@@ -5,7 +5,7 @@ output "alb_dns_name" {
 
 output "ecr_repository_url" {
   description = "URL of the Bookmark ECR repository"
-  value       = aws_ecr_repository.api.repository_url
+  value       = data.aws_ecr_repository.api.repository_url
 }
 
 output "s3_bucket_name" {
