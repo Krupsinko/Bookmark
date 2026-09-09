@@ -240,7 +240,6 @@ resource "aws_secretsmanager_secret_version" "jwt_secret" {
 
 
 
-
 # Other
 resource "aws_ecs_cluster" "bookmark" {
   name = "bookmark-cluster"
@@ -249,7 +248,6 @@ resource "aws_ecs_cluster" "bookmark" {
     Name = "bookmark-cluster"
   }
 }
-
 
 data "aws_ecr_repository" "api" {
   name = "bookmark-api"

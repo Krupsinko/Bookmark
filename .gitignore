@@ -204,6 +204,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Terraform
+tfplan
+terraform.tfstate.backup
 .terraform/
 terraform/.terraform/
 terraform/*.tfstate
