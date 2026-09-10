@@ -7,6 +7,8 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 
+
+
 resource "aws_iam_role" "github_actions" {
   name = "bookmark-github-actions"
 
@@ -35,6 +37,8 @@ resource "aws_iam_role" "github_actions" {
 }
 
 
+
+
 resource "aws_iam_policy" "github_ecr_push" {
   name = "bookmark-github-ecr-push"
 
@@ -44,7 +48,6 @@ resource "aws_iam_policy" "github_ecr_push" {
     Statement = [
       {
         Effect = "Allow"
-
         Action = [
           "ecr:GetAuthorizationToken"
         ]
@@ -53,13 +56,13 @@ resource "aws_iam_policy" "github_ecr_push" {
       },
       {
         Effect = "Allow"
-
         Action = [
           "ecr:BatchCheckLayerAvailability",
-          "ecr:BatchGetImage",
+          "ecr:DescribeRepositories",
           "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:BatchGetImage",
           "ecr:PutImage"
         ]
 
@@ -68,12 +71,12 @@ resource "aws_iam_policy" "github_ecr_push" {
     ]
   })
 }
-
-
 resource "aws_iam_role_policy_attachment" "github_ecr_push" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_ecr_push.arn
 }
+
+
 
 
 resource "aws_iam_policy" "github_terraform_state" {
@@ -85,7 +88,6 @@ resource "aws_iam_policy" "github_terraform_state" {
     Statement = [
       {
         Effect = "Allow"
-
         Action = [
           "s3:ListBucket"
         ]
@@ -94,7 +96,6 @@ resource "aws_iam_policy" "github_terraform_state" {
       },
       {
         Effect = "Allow"
-
         Action = [
           "s3:GetObject",
           "s3:PutObject",
@@ -106,8 +107,127 @@ resource "aws_iam_policy" "github_terraform_state" {
     ]
   })
 }
-
 resource "aws_iam_role_policy_attachment" "github_terraform_state" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_terraform_state.arn
 }
+
+
+
+
+resource "aws_iam_policy" "github_terraform_apply" {
+  policy = jsonencode({
+
+    Statement = [{
+      Sid    = "InfrastructureService"
+      Effect = "Allow"
+      Action = [
+        "ecs:*",
+        "ec2:*",
+        "rds:*",
+        "logs:*",
+        "elasticache:*",
+        "secretsmanager:*",
+        "elasticloadbalancing:*"
+      ],
+      Resource = "*"
+      },
+
+      {
+        Sid    = "ScreenshotBucket"
+        Effect = "Allow"
+        Action = [
+          "arn:aws:s3:::bookmark-screenshots-dev"
+        ]
+      },
+
+      {
+        Sid    = "ManageBookmarkIAM"
+        Effect = "Allow"
+
+        Action = [
+          "iam:CreateRole",
+          "iam:GetRole",
+          "iam:DeleteRole",
+          "iam:UpdateAssumeRolePolicy",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+
+          "iam:CreatePolicy",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:ListPolicyVersions",
+          "iam:CreatePolicyVersion",
+          "iam:DeletePolicyVersion",
+          "iam:DeletePolicy",
+          "iam:TagPolicy",
+          "iam:UntagPolicy",
+
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy"
+        ]
+
+        Resource = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-ecs-execution-role",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-celery-role",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bookmark-celery-s3",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/ecs-secrets-manager"
+        ]
+      },
+
+      {
+        Sid    = "PassBookmarkRolesToECS"
+        Effect = "Allow"
+
+        Action = [
+          "iam:PassRole"
+        ]
+
+        Resource = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-ecs-execution-role",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-celery-role"
+        ]
+
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "ecs-tasks.amazonaws.com"
+          }
+        }
+      },
+
+      {
+        Sid    = "CreateRequiredServiceLinkedRoles"
+        Effect = "Allow"
+
+        Action = [
+          "iam:CreateServiceLinkedRole"
+        ]
+
+        Resource = "*"
+
+        Condition = {
+          StringEquals = {
+            "iam:AWSServiceName" = [
+              "ecs.amazonaws.com",
+              "elasticloadbalancing.amazonaws.com",
+              "rds.amazonaws.com",
+              "elasticache.amazonaws.com"
+            ]
+          }
+        }
+      }
+    ]
+  })
+}
+
+
+
+
+
+
+
+
+
+
