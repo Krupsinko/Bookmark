@@ -111,5 +111,3 @@ resource "aws_iam_role_policy_attachment" "github_terraform_state" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_terraform_state.arn
 }
-
-
