@@ -116,8 +116,10 @@ resource "aws_iam_role_policy_attachment" "github_terraform_state" {
 
 
 resource "aws_iam_policy" "github_terraform_apply" {
+  name = "bookmark-github-terraform-apply"
   policy = jsonencode({
 
+    Version = "2012-10-17"
     Statement = [{
       Sid    = "InfrastructureService"
       Effect = "Allow"
@@ -134,11 +136,10 @@ resource "aws_iam_policy" "github_terraform_apply" {
       },
 
       {
-        Sid    = "ScreenshotBucket"
-        Effect = "Allow"
-        Action = [
-          "arn:aws:s3:::bookmark-screenshots-dev"
-        ]
+        Sid      = "ScreenshotBucket"
+        Effect   = "Allow"
+        Action   = "s3:*"
+        Resource = "arn:aws:s3:::bookmark-screenshots-dev"
       },
 
       {
@@ -181,9 +182,7 @@ resource "aws_iam_policy" "github_terraform_apply" {
         Sid    = "PassBookmarkRolesToECS"
         Effect = "Allow"
 
-        Action = [
-          "iam:PassRole"
-        ]
+        Action = "iam:PassRole"
 
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-ecs-execution-role",
@@ -201,9 +200,7 @@ resource "aws_iam_policy" "github_terraform_apply" {
         Sid    = "CreateRequiredServiceLinkedRoles"
         Effect = "Allow"
 
-        Action = [
-          "iam:CreateServiceLinkedRole"
-        ]
+        Action = "iam:CreateServiceLinkedRole"
 
         Resource = "*"
 
@@ -223,6 +220,10 @@ resource "aws_iam_policy" "github_terraform_apply" {
 }
 
 
+resource "aws_iam_role_policy_attachment" "github_terraform_apply" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_terraform_apply.arn
+}
 
 
 

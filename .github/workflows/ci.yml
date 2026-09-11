@@ -18,9 +18,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
         ports:
           - 5432:5432
         options: >-
@@ -67,11 +67,15 @@ jobs:
 
       - name: Run tests
         env:
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          DB_HOST: localhost
+          DB_PORT: 5432
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           ALGORITHM: ${{ secrets.ALGORITHM }}
           
-          TEST_DATABASE_URL: postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME}}
-          DATABASE_URL: postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME}}
+          TEST_DATABASE_URL: postgresql+asyncpg://${{env.DB_USER}}:${{ env.DB_PASSWORD }}@${{ env.DB_HOST}}:${{ env.DB_PORT }}/${{ env.DB_NAME }}
         run: pytest --cov=app --cov-report=term-missing
       
   deploy:

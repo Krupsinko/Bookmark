@@ -1,10 +1,9 @@
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
-from celery.celery_worker import page_screenshot, run
+from worker.celery_worker import page_screenshot
 
 TEST_URL = "https://example.com"
 TEST_BOOKMARK_ID = 1
@@ -12,7 +11,7 @@ TEST_BOOKMARK_ID = 1
 
 @pytest.fixture
 def mock_playwright_dependencies():
-    with patch("celery_worker.sync_playwright") as mock_sync_playwright:
+    with patch("worker.celery_worker.sync_playwright") as mock_sync_playwright:
         
         # Playwright mocks
         mock_playwright_instance = MagicMock()
@@ -33,7 +32,7 @@ def mock_playwright_dependencies():
         
 @pytest.fixture
 def mock_database_dependencies():
-    with patch("celery_worker.SyncSessionLocal") as mock_session_local:
+    with patch("worker.celery_worker.SyncSessionLocal") as mock_session_local:
 
         # Database objects mocks
         mock_session = MagicMock()
@@ -53,7 +52,7 @@ def test_playwright(mock_playwright_dependencies):
     
     chromium, browser, page = mock_playwright_dependencies
 
-    run(TEST_URL)
+    page_screenshot(TEST_URL, "test_s3_key")
 
     chromium.launch.assert_called_once()
     page.goto.assert_called_once_with(TEST_URL, timeout=60000)

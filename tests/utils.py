@@ -6,29 +6,21 @@ from httpx import ASGITransport, AsyncClient
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.config import settings
 from app.db.database import Base, get_db
 from app.db.models import Bookmark, User
 from app.main import app
 from app.routers.users import get_current_user
 
-TEST_DATABASE_URL = settings.TEST_DATABASE_URL
-
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
+@pytest_asyncio.fixture(scope="function")
 async def db_engine():
-    engine = create_async_engine(url=TEST_DATABASE_URL, echo=False)
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
 
-    # === SETUP ===
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    
     yield engine
-
-    # === TEARDOWN ===
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
 
     await engine.dispose()
 
@@ -53,13 +45,12 @@ async def async_client(db_session: AsyncSession):
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
 
-    # === HTTPX TRANSPORT ===
-    with patch("app.routers.bookmarks.page_screenshot") as mock_page_screenshot:
+
+    with patch("app.routers.bookmarks.celery_app.send_task") as mock_send_task:
         async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client: #HTTPX connects with FastAPI in memory
-                     #insted of creating real server
-            client.mock_page_screenshot = mock_page_screenshot
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as client:
+            client.mock_send_task = mock_send_task
             yield client
 
 
