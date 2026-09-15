@@ -1,8 +1,8 @@
 import os
 
 TEST_SETTINGS = {
-    "DB_NAME": "test",
-    "DB_USER": "test",
+    "DB_NAME": "test_db",
+    "DB_USER": "test_user",
     "DB_PASSWORD": "test",
     "DB_HOST": "localhost",
     "DB_PORT": "5432",

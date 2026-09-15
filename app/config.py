@@ -10,7 +10,7 @@ class DatabaseSettings(BaseSettings):
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str
-    DB_PORT: int
+    DB_PORT: str
     DB_HOST: str
 
     @computed_field
