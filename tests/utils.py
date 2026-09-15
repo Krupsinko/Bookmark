@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from unittest.mock import patch
 
@@ -12,17 +13,23 @@ from app.main import app
 from app.routers.users import get_current_user
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    "sqlite+aiosqlite:///:memory:",
+)
+
 
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    
-    yield engine
+    try:
+        async with engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
 
-    await engine.dispose()
+        yield engine
+    finally:
+        await engine.dispose()
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -39,19 +46,21 @@ async def async_client(db_session: AsyncSession):
     def override_get_current_user():
         return {"id": 1, "sub": "test", "role": "user"}
 
-    def override_get_db():
+    async def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
 
-
-    with patch("app.routers.bookmarks.celery_app.send_task") as mock_send_task:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://testserver"
-        ) as client:
-            client.mock_send_task = mock_send_task
-            yield client
+    try:
+        with patch("app.routers.bookmarks.celery_app.send_task") as mock_send_task:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://testserver"
+            ) as client:
+                client.mock_send_task = mock_send_task
+                yield client
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture(scope="function")

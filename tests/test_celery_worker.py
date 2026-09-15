@@ -1,77 +1,46 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
-from worker.celery_worker import page_screenshot
+from worker import celery_worker
 
 TEST_URL = "https://example.com"
-TEST_BOOKMARK_ID = 1
+TEST_S3_KEY = "user/1/test.png"
+SCREENSHOT = b"png-content"
 
 
 @pytest.fixture
-def mock_playwright_dependencies():
+def mock_worker_dependencies():
     with patch("worker.celery_worker.sync_playwright") as mock_sync_playwright:
-        
-        # Playwright mocks
-        mock_playwright_instance = MagicMock()
-        mock_chromium = MagicMock()
-        mock_browser = MagicMock()
-        mock_page = MagicMock()    
-        
-        mock_sync_playwright.return_value.__enter__.return_value = mock_playwright_instance
-        mock_playwright_instance.chromium = mock_chromium
-        mock_chromium.launch.return_value = mock_browser
-        mock_browser.new_page.return_value = mock_page
-        
-        
-        yield mock_chromium, mock_browser, mock_page
-        
-        
-        
-        
-@pytest.fixture
-def mock_database_dependencies():
-    with patch("worker.celery_worker.SyncSessionLocal") as mock_session_local:
+        with patch("worker.celery_worker.s3") as mock_s3:
+            playwright = MagicMock()
+            chromium = MagicMock()
+            browser = MagicMock()
+            page = MagicMock()
 
-        # Database objects mocks
-        mock_session = MagicMock()
-        mock_result = MagicMock()
-        mock_bookmark = MagicMock()
-    
-        mock_session_local.return_value.__enter__.return_value = mock_session
-        mock_session.execute.return_value = mock_result
-        mock_result.scalar_one_or_none.return_value = mock_bookmark
-        
-        yield mock_session, mock_result, mock_bookmark
+            mock_sync_playwright.return_value.__enter__.return_value = playwright
+            playwright.chromium = chromium
+            chromium.launch.return_value = browser
+            browser.new_page.return_value = page
+            page.screenshot.return_value = SCREENSHOT
+
+            yield chromium, browser, page, mock_s3
 
 
+def test_page_screenshot_uploads_png_to_s3(mock_worker_dependencies):
+    chromium, browser, page, mock_s3 = mock_worker_dependencies
 
+    result = celery_worker.page_screenshot(TEST_URL, TEST_S3_KEY)
 
-def test_playwright(mock_playwright_dependencies):
-    
-    chromium, browser, page = mock_playwright_dependencies
-
-    page_screenshot(TEST_URL, "test_s3_key")
-
-    chromium.launch.assert_called_once()
+    chromium.launch.assert_called_once_with()
+    browser.new_page.assert_called_once_with()
     page.goto.assert_called_once_with(TEST_URL, timeout=60000)
-    page.screenshot.assert_called_once()
-    browser.close.assert_called_once()
-
-
-
-def test_page_screenshot(mock_database_dependencies):
-    
-    session, result, bookmark = mock_database_dependencies
-    
-    page_screenshot(TEST_URL, TEST_BOOKMARK_ID)
-
-
-    session.execute.assert_called_once()
-    result.scalar_one_or_none.assert_called_once()
-    assert bookmark.screenshot_url is not None
-    assert bookmark.screenshot_url.startswith("screenshots")
-    assert bookmark.screenshot_url.endswith(".png")
-    session.commit.assert_called_once()
-    session.refresh.assert_called_with(bookmark)
+    page.screenshot.assert_called_once_with(full_page=True, type="png")
+    mock_s3.put_object.assert_called_once_with(
+        Bucket=celery_worker.s3_bucket_name,
+        Key=TEST_S3_KEY,
+        Body=SCREENSHOT,
+        ContentType="image/png",
+    )
+    browser.close.assert_called_once_with()
+    assert result == TEST_S3_KEY

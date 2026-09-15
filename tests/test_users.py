@@ -148,7 +148,7 @@ async def test_create_user(db_session, async_client: AsyncClient):
         "role": "user",
     }
     response = await async_client.post("/user/", json=request_data)
-    
+
     assert response.status_code == status.HTTP_201_CREATED
 
     result = await db_session.execute(

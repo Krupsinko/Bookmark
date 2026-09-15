@@ -14,8 +14,8 @@ s3_bucket_name = aws_settings.S3_BUCKET_NAME
 
 @celery_app.task(
     name="bookmark.page_screenshot",
-    autoretry_for=(PlaywrightTimeout,), 
-    retry_kwargs={"max_retries": 3, "countdown": 10}
+    autoretry_for=(PlaywrightTimeout,),
+    retry_kwargs={"max_retries": 3, "countdown": 10},
 )
 def page_screenshot(url: str, s3_key) -> str:
     try:
@@ -26,17 +26,17 @@ def page_screenshot(url: str, s3_key) -> str:
                 page = browser.new_page()
                 page.goto(url, timeout=60000)
                 screenshot = page.screenshot(full_page=True, type="png")
-                
+
             except PlaywrightTimeout:
-                            print(f"Timeout while loading {url}.")
-                            raise
-            
+                print(f"Timeout while loading {url}.")
+                raise
+
             s3.put_object(
                 Bucket=s3_bucket_name,
                 Key=s3_key,
                 Body=screenshot,
-                ContentType="image/png"
-                )
+                ContentType="image/png",
+            )
             browser.close()
 
     except Exception as e:

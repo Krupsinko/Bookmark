@@ -118,11 +118,11 @@ async def create_bookmark(
     db.add(bookmark)
     await db.commit()
     await db.refresh(bookmark)
-    
+
     celery_app.send_task(
         "bookmark.page_screenshot",
         args=[bookmark.url, s3_key],
-)
+    )
     return bookmark
 
 

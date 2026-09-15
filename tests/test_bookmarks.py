@@ -80,7 +80,13 @@ async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data)
     assert "created_at" in data
     assert "updated_at" in data
 
-    async_client.mock_send_task.assert_called_once()
+    s3_key = data["s3_key"]
+    assert s3_key.startswith("user/1/")
+    assert s3_key.endswith(".png")
+    async_client.mock_send_task.assert_called_once_with(
+        "bookmark.page_screenshot",
+        args=["https://example.com/", s3_key],
+    )
 
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))
     bookmark = result.scalar_one()
