@@ -19,16 +19,18 @@ TEST_DATABASE_URL = os.getenv(
 )
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def db_engine():
     engine = create_async_engine(TEST_DATABASE_URL, echo=False)
-
     try:
         async with engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
 
         yield engine
+    
     finally:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
 
 
@@ -55,7 +57,7 @@ async def async_client(db_session: AsyncSession):
     try:
         with patch("app.routers.bookmarks.celery_app.send_task") as mock_send_task:
             async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://testserver"
+                transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
                 client.mock_send_task = mock_send_task
                 yield client
