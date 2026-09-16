@@ -216,6 +216,16 @@ resource "aws_iam_policy" "github_terraform_apply" {
             ]
           }
         }
+      },
+      {
+        Sid    = "DescribeKMSForRDSSecrets"
+        Effect = "Allow"
+
+        Action = [
+          "kms:DescribeKey"
+        ]
+
+        Resource = "*"
       }
     ]
   })
