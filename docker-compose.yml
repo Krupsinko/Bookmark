@@ -43,6 +43,3 @@ services:
 
   redis: 
     image: redis:7-alpine
-  
-volumes:
-  postgres_data:
