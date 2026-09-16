@@ -59,6 +59,7 @@ resource "aws_iam_policy" "github_ecr_push" {
         Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:DescribeRepositories",
+          "ecr:DescribeImages",
           "ecr:InitiateLayerUpload",
           "ecr:CompleteLayerUpload",
           "ecr:UploadLayerPart",
