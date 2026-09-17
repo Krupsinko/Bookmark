@@ -1,10 +1,11 @@
 services:
   api:
     build: .
+    environment:
+      SECRET_KEY: secret
+      ALGORITHM: HS256
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -15,15 +16,12 @@ services:
 
   db:
     image: postgres:15-alpine
-
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: dev_db
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - .env
     ports:
       - "5432:5432"
     healthcheck:
@@ -34,8 +32,9 @@ services:
     
   celery:
     build: .
-    env_file:
-      - .env
+    environment:
+      REDIS_HOST: redis
+      S3_BUCKET_NAME: s3_bucket
     depends_on:
       redis:
         condition: service_started
@@ -43,3 +42,6 @@ services:
 
   redis: 
     image: redis:7-alpine
+  
+  volumes:
+    postgres_data: 
