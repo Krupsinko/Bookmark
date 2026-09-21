@@ -48,6 +48,12 @@ resource "aws_ecs_task_definition" "api" {
       image     = "${data.aws_ecr_repository.api.repository_url}:${var.image_tag}"
       essential = true
 
+      command = [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      ]
+
       portMappings = [
         {
           containerPort = 8000
