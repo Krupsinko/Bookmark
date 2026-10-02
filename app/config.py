@@ -1,44 +1,35 @@
-from pydantic import computed_field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
+from sqlalchemy import URL
 
 
 class DatabaseSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
-
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str
     DB_PORT: str
     DB_HOST: str
 
-    @computed_field
-    def DATABASE_URL(self) -> str:
-        db_url = f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        return db_url
+    @property
+    def DATABASE_URL(self) -> URL:
+        url_object = URL.create(
+            "postgresql+asyncpg",
+            database=self.DB_NAME,
+            username=self.DB_USER,
+            password=self.DB_PASSWORD,
+            port=self.DB_PORT,
+            host=self.DB_HOST
+        )
+        return url_object
 
 
 class EncryptSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
-
     SECRET_KEY: str
     ALGORITHM: str
 
 
 class AwsSetting(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
-
     S3_BUCKET_NAME: str
 
 
 class RedisSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
-
     REDIS_HOST: str

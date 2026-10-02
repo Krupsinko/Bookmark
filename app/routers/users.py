@@ -83,18 +83,24 @@ async def login(
     "/", status_code=status.HTTP_201_CREATED, response_model=CreateUserResponse
 )
 async def create_user(db: db_dependency, user_request: CreateUserRequest):
-    stmt = select(User).where(User.email == user_request.email)
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
-    if user:
+    email_stmt = select(User).where(User.email == user_request.email)
+    email_result = await db.execute(email_stmt)
+    user_email = email_result.scalar_one_or_none()
+
+    username_stmt = select(User).where(User.username == user_request.username)
+    username_result = await db.execute(username_stmt)
+    user_username = username_result.scalar_one_or_none()
+
+    if user_email or user_username:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered."
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email or username already registered."
         )
+
     new_user = User(
         email=user_request.email,
         username=user_request.username,
         hashed_password=bcrypt_context.hash(user_request.password),
-        role=user_request.role,
+        role="user"
     )
     db.add(new_user)
     await db.commit()

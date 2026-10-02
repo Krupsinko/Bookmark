@@ -1,6 +1,6 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 
 from alembic import context
 from app.config import DatabaseSettings
@@ -9,14 +9,13 @@ from app.db.database import Base
 
 db_settings = DatabaseSettings()
 
-db_url = db_settings.DATABASE_URL
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-if db_url:
-    sync_db_url = db_url.replace("+asyncpg", "")
-    config.set_main_option("sqlalchemy.url", sync_db_url)
+sync_db_url = db_settings.DATABASE_URL.set(
+    drivername="postgresql+psycopg2"
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -47,9 +46,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=sync_db_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -66,10 +64,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+    connectable = create_engine(
+    sync_db_url,
+    poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:

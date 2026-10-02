@@ -13,6 +13,7 @@ from app.main import app
 from app.routers.users import get_current_user
 
 bcrypt_context = CryptContext(schemes=["bcrypt"])
+
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
     "sqlite+aiosqlite:///:memory:",

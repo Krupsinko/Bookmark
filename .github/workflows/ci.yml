@@ -10,13 +10,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        python-version: ["3.13"]
+    env:
+      PYTHON_VERSION: "3.13"
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: test_user
@@ -37,25 +36,29 @@ jobs:
       - name:  Python setup
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
       
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-${{ env.PYTHON_VERSION }}-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-      
-      - name: Install playwright browsers
-        run: |
-          python -m playwright install-deps 
-          python -m playwright install
+          python -m pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Check database migrations
+        env:
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          DB_PORT: "5432"
+          DB_HOST: localhost
+        run: alembic upgrade head
 
       - name: Run tests
         env:
@@ -66,6 +69,11 @@ jobs:
     needs: test
     
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    concurrency:
+      group: bookmark-production-deploy
+      cancel-in-progress: false
+      queue: max
 
     runs-on: ubuntu-latest
 

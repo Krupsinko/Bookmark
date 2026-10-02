@@ -3,9 +3,9 @@ resource "aws_ecs_service" "api" {
   name            = "bookmark-api"
   cluster         = aws_ecs_cluster.bookmark.id
   task_definition = aws_ecs_task_definition.api.arn
-
   desired_count = 1
   launch_type   = "FARGATE"
+  wait_for_steady_state  = true
 
   network_configuration {
     subnets = [
@@ -41,6 +41,7 @@ resource "aws_ecs_task_definition" "api" {
   memory = "512"
 
   execution_role_arn = aws_iam_role.ecs_execution.arn
+  task_role_arn      = aws_iam_role.api_task.arn
 
   container_definitions = jsonencode([
     {
@@ -92,6 +93,10 @@ resource "aws_ecs_task_definition" "api" {
         {
           name  = "ALGORITHM"
           value = "HS256"
+        },
+        {
+          name = "S3_BUCKET_NAME"
+          value = aws_s3_bucket.screenshots.bucket
         }
       ]
 
@@ -126,9 +131,9 @@ resource "aws_ecs_service" "celery" {
   name            = "bookmark-celery"
   cluster         = aws_ecs_cluster.bookmark.id
   task_definition = aws_ecs_task_definition.celery.arn
-
   desired_count = 1
   launch_type   = "FARGATE"
+  wait_for_steady_state  = true
 
   network_configuration {
     subnets = [

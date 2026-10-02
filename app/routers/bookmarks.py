@@ -1,7 +1,10 @@
+import boto3
+
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 
+from starlette.concurrency import run_in_threadpool
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,14 +20,20 @@ from ..schemas.schemas import (
     BookmarkUpdate,
     BookmarkWithOwnerResponse,
     PaginateBookmarkReponse,
+    ScreenshotUrlResponse
 )
 from .users import get_current_user
+from app.config import AwsSetting
 
 router = APIRouter(prefix="/bookmarks", tags=["Bookmarks"])
 
 db_dependency = Annotated[AsyncSession, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
+aws_settings = AwsSetting()
+
+s3 = boto3.client("s3")
+s3_bucket_name = aws_settings.S3_BUCKET_NAME
 
 class SortBy(str, Enum):
     CREATED_AT_DESC = "Date descending"
@@ -36,7 +45,10 @@ class SortBy(str, Enum):
 
 
 # --- GET ALL BOOKMARKS ---
-@router.get("/", status_code=status.HTTP_200_OK, response_model=PaginateBookmarkReponse)
+@router.get("/",
+            status_code=status.HTTP_200_OK,
+            response_model=PaginateBookmarkReponse
+)
 async def get_all_bookmarks(
     db: db_dependency,
     user: user_dependency,
@@ -107,14 +119,20 @@ async def get_bookmark(
 
 
 # --- CREATE BOOKMARKS ---
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=BookmarkResponse)
+@router.post("/",
+             status_code=status.HTTP_201_CREATED,
+             response_model=BookmarkResponse
+)
 async def create_bookmark(
     db: db_dependency, bookmark_request: BookmarkCreate, user: user_dependency
 ):
     owner_id = user.get("id")
     s3_key = f"user/{owner_id}/{uuid4()}.png"
     data = bookmark_request.model_dump(mode="json")
-    bookmark = Bookmark(**data, owner_id=owner_id, s3_key=s3_key)
+    bookmark = Bookmark(**data,
+                        owner_id=owner_id,
+                        s3_key=s3_key
+                        )
     db.add(bookmark)
     await db.commit()
     await db.refresh(bookmark)
@@ -128,7 +146,9 @@ async def create_bookmark(
 
 # --- UPDATE BOOKMARK ---
 @router.put(
-    "/{bookmark_id}", status_code=status.HTTP_200_OK, response_model=BookmarkResponse
+    "/{bookmark_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=BookmarkResponse
 )
 async def update_bookmark(
     db: db_dependency,
@@ -139,7 +159,8 @@ async def update_bookmark(
     stmt = (
         select(Bookmark)
         .options(selectinload(Bookmark.owner))
-        .where(Bookmark.id == bookmark_id, Bookmark.owner_id == user.get("id"))
+        .where(Bookmark.id == bookmark_id,
+               Bookmark.owner_id == user.get("id"))
     )
     result = await db.execute(stmt)
     bookmark = result.scalar_one_or_none()
@@ -150,8 +171,9 @@ async def update_bookmark(
         )
 
     for key, value in bookmark_request.model_dump(
-        exclude_unset=True, mode="json"
-    ).items():  # noqa: E501
+        exclude_unset=True,
+        mode="json"
+    ).items():
         setattr(bookmark, key, value)
 
     await db.commit()
@@ -160,22 +182,80 @@ async def update_bookmark(
 
 
 # --- DELETE BOOKMARK ---
-@router.delete("/{bookmark_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{bookmark_id}",
+               status_code=status.HTTP_204_NO_CONTENT
+)
 async def delete_bookmark(
-    db: db_dependency, user: user_dependency, bookmark_id: int = Path(gt=0)
+    db: db_dependency,
+    user: user_dependency,
+    bookmark_id: int = Path(gt=0)
 ):
     stmt = (
         select(Bookmark)
         .options(selectinload(Bookmark.owner))
-        .where(Bookmark.id == bookmark_id, Bookmark.owner_id == user.get("id"))
+        .where(Bookmark.id == bookmark_id,
+               Bookmark.owner_id == user.get("id"))
     )
     result = await db.execute(stmt)
     bookmark = result.scalar_one_or_none()
 
     if bookmark is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Bookmark not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bookmark not found."
         )
 
+    if bookmark.s3_key:
+        await run_in_threadpool(
+            s3.delete_object,
+            Bucket=s3_bucket_name,
+            Key=bookmark.s3_key,
+        )
     await db.delete(bookmark)
     await db.commit()
+
+
+# --- GET SCREENSHOT ---
+@router.get(
+    "/{bookmark_id}/screenshot-url",
+    response_model=ScreenshotUrlResponse,
+)
+async def get_screenshot_url(
+    db: db_dependency,
+    user: user_dependency,
+    bookmark_id: int,
+):
+    result = await db.execute(
+        select(Bookmark).where(
+            Bookmark.id == bookmark_id,
+            Bookmark.owner_id == user["id"],
+        )
+    )
+    bookmark = result.scalar_one_or_none()
+
+    if bookmark is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bookmark not found.",
+        )
+
+    if not bookmark.s3_key:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Screenshot not found.",
+        )
+
+    expires_in = 300
+    url = s3.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={
+            "Bucket": s3_bucket_name,
+            "Key": bookmark.s3_key,
+        },
+        ExpiresIn=expires_in,
+    )
+
+    return ScreenshotUrlResponse(
+        url=url,
+        expires_in=expires_in,
+    )

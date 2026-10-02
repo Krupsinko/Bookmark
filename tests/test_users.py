@@ -144,8 +144,7 @@ async def test_create_user(db_session, async_client: AsyncClient):
     request_data = {
         "email": "test@email.com",
         "username": "testuser",
-        "password": "x",
-        "role": "user",
+        "password": "x"
     }
     response = await async_client.post("/user/", json=request_data)
 
@@ -160,4 +159,4 @@ async def test_create_user(db_session, async_client: AsyncClient):
     assert user.username == request_data["username"]
     assert user.hashed_password != request_data["password"]
     assert bcrypt_context.verify(request_data["password"], user.hashed_password)
-    assert user.role == request_data["role"]
+    assert user.role == "user"

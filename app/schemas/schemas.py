@@ -45,7 +45,6 @@ class BookmarkCreate(BaseModel):
 
 
 class BookmarkUpdate(BaseModel):
-    url: HttpUrl
     title: str = Field(max_length=100)
     description: Optional[str] = Field(None, max_length=255)
     tags: Optional[List[str]] = Field(None, max_length=255)
@@ -55,7 +54,6 @@ class CreateUserRequest(BaseModel):
     email: str
     username: str
     password: str
-    role: str
 
 
 class CreateUserResponse(BaseModel):
@@ -69,3 +67,8 @@ class CreateUserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class ScreenshotUrlResponse(BaseModel):
+    url: str
+    expires_in: int

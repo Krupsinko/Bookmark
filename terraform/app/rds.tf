@@ -22,13 +22,17 @@ resource "aws_db_instance" "bookmark" {
 
   publicly_accessible = false
 
-  skip_final_snapshot = true
+  skip_final_snapshot = false
 
   tags = {
     Name = "bookmark-db"
   }
 }
 
+resource "aws_secretsmanager_secret_rotation" "rds_master" {
+  secret_id        = aws_db_instance.bookmark.master_user_secret[0].secret_arn
+  rotation_enabled = false
+}
 
 resource "aws_db_subnet_group" "bookmark" {
   name = "bookmark-db-subnet-group"

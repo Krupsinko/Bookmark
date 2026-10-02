@@ -207,6 +207,5 @@ __marimo__/
 tfplan
 terraform.tfstate.backup
 .terraform/
-terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.*
+*.tfstate
+*.tfstate.*

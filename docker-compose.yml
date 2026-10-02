@@ -2,6 +2,12 @@ services:
   api:
     build: .
     environment:
+      DB_NAME: dev_db
+      DB_USER: dev_user
+      DB_PASSWORD: dev_password
+      DB_PORT: 5432
+      DB_HOST: db
+      REDIS_HOST: redis
       SECRET_KEY: secret
       ALGORITHM: HS256
     ports:
@@ -13,9 +19,8 @@ services:
         condition: service_started
     command: >
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
-
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_DB: dev_db
       POSTGRES_USER: dev_user
@@ -43,5 +48,5 @@ services:
   redis: 
     image: redis:7-alpine
   
-  volumes:
+volumes:
     postgres_data: 
