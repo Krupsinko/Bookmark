@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 from fastapi import status
@@ -37,7 +38,7 @@ async def test_get_all_bookmarks_authorized(async_client: AsyncClient, seed_data
     assert item["url"] == "https://example.com/"
     assert item["created_at"] == TEST_DATETIME
     assert item["updated_at"] == TEST_DATETIME
-
+    assert item["s3_key"] == "test_key"
     test_datetime = datetime.fromisoformat(TEST_DATETIME)
     assert isinstance(test_datetime, datetime)
 
@@ -56,6 +57,7 @@ async def test_get_bookmark_authorized(async_client: AsyncClient, seed_data):
     assert data["owner"] == {"id": 1, "username": "test"}
     assert data["created_at"] == TEST_DATETIME
     assert data["updated_at"] == TEST_DATETIME
+    assert data["s3_key"] == "test_key"
 
 
 @pytest.mark.asyncio
@@ -66,7 +68,7 @@ async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data)
         "url": "https://example.com/",
         "description": None,
         "tags": None,
-        "favorite": False,
+        "favorite": False
     }
 
     response = await async_client.post(
@@ -113,18 +115,60 @@ async def test_update_bookmark(async_client: AsyncClient, db_session, seed_data)
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))
     bookmark = result.scalar_one_or_none()
     assert bookmark.title == "Updated title"
+ 
 
 
 @pytest.mark.asyncio
 async def test_delete_bookmark(async_client: AsyncClient, db_session, seed_data):
-    bookmark_id = 1
-
-    response = await async_client.delete(
-        f"/bookmarks/{bookmark_id}", headers={"Authorization": "Bearer testtoken"}
-    )
+    with patch("app.routers.bookmarks.s3.delete_object") as mock_delete:     
+        response = await async_client.delete(
+            "/bookmarks/1",
+            headers={"Authorization": "Bearer testtoken"}
+        )
     assert response.status_code == status.HTTP_204_NO_CONTENT
+    mock_delete.assert_called_once_with(
+    Bucket="test-screenshots",
+    Key="test_key",
+)
 
     result = await db_session.execute(
-        select(Bookmark).where(Bookmark.id == bookmark_id)
+        select(Bookmark).where(Bookmark.id == 1)
     )
     assert result.scalar_one_or_none() is None
+
+
+
+@pytest.fixture
+def mock_screenshot_url():
+    with patch(
+        "app.routers.bookmarks.s3.generate_presigned_url",
+        return_value = "https://presigned-test-url"
+        ) as mock_url:
+        yield mock_url 
+
+
+@pytest.mark.asyncio
+async def test_get_screenshot_url(
+    mock_screenshot_url,
+    async_client: AsyncClient,
+    seed_data
+    ):
+    
+    response = await async_client.get(
+        "bookmarks/1/screenshot-url",
+        headers={"Authorization": "Bearer testtoken"}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "url": "https://presigned-test-url",
+        "expires_in": 300
+    }
+    
+    mock_screenshot_url.assert_called_once_with(
+        ClientMethod="get_object",
+        Params={
+            "Bucket": "test-screenshots",
+            "Key": "test_key"
+        },
+        ExpiresIn=300
+    )

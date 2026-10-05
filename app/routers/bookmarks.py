@@ -218,7 +218,8 @@ async def delete_bookmark(
 # --- GET SCREENSHOT ---
 @router.get(
     "/{bookmark_id}/screenshot-url",
-    response_model=ScreenshotUrlResponse,
+    status_code=status.HTTP_200_OK,
+    response_model=ScreenshotUrlResponse
 )
 async def get_screenshot_url(
     db: db_dependency,

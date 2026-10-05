@@ -85,6 +85,7 @@ async def seed_data(db_session: AsyncSession):
         owner_id=1,
         created_at=TEST_DATETIME,
         updated_at=TEST_DATETIME,
+        s3_key="test_key"
     )
     db_session.add(user)
     db_session.add(bookmark)
