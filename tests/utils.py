@@ -26,7 +26,7 @@ async def db_engine():
     try:
         async with engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
-
+            
         yield engine
     
     finally:
@@ -85,7 +85,9 @@ async def seed_data(db_session: AsyncSession):
         owner_id=1,
         created_at=TEST_DATETIME,
         updated_at=TEST_DATETIME,
-        s3_key="test_key"
+        s3_key="test_key",
+        screenshot_status="pending"
+        
     )
     db_session.add(user)
     db_session.add(bookmark)

@@ -1,5 +1,5 @@
-from unittest.mock import MagicMock, patch
-
+from unittest.mock import MagicMock, patch, call
+from app.enums import ScreenshotStatus
 import pytest
 
 from worker import celery_worker
@@ -26,11 +26,11 @@ def mock_worker_dependencies():
 
             yield chromium, browser, page, mock_s3
 
-
 def test_page_screenshot_uploads_png_to_s3(mock_worker_dependencies):
     chromium, browser, page, mock_s3 = mock_worker_dependencies
 
-    result = celery_worker.page_screenshot(TEST_URL, TEST_S3_KEY)
+    with patch("worker.celery_worker.set_screenshot_status") as mock_status:
+        result = celery_worker.page_screenshot(TEST_URL, TEST_S3_KEY, 1)
 
     chromium.launch.assert_called_once_with()
     browser.new_page.assert_called_once_with()
@@ -43,4 +43,8 @@ def test_page_screenshot_uploads_png_to_s3(mock_worker_dependencies):
         ContentType="image/png",
     )
     browser.close.assert_called_once_with()
+    mock_status.assert_has_calls([
+        call(1, ScreenshotStatus.PROCESSING.value),
+        call(1, ScreenshotStatus.READY.value),
+        ])
     assert result == TEST_S3_KEY

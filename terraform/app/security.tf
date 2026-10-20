@@ -64,7 +64,7 @@ resource "aws_iam_role" "ecs_execution" {
   })
 }
 resource "aws_iam_role_policy_attachment" "ecs_execution" {
-  role = aws_iam_role.ecs_execution.name
+  role       = aws_iam_role.ecs_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -86,21 +86,24 @@ resource "aws_iam_role" "api_task" {
     }]
   })
 }
-resource "aws_iam_policy" "api_s3_delete" {
-  name = "bookmark-api-s3-delete"
+resource "aws_iam_policy" "api_s3" {
+  name = "bookmark-api-s3"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["s3:DeleteObject"]
+      Effect = "Allow"
+      Action = [
+        "s3:DeleteObject",
+        "s3:GetObject"
+      ]
       Resource = "${aws_s3_bucket.screenshots.arn}/*"
     }]
   })
 }
-resource "aws_iam_role_policy_attachment" "api_s3_delete" {
+resource "aws_iam_role_policy_attachment" "api_s3" {
   role       = aws_iam_role.api_task.name
-  policy_arn = aws_iam_policy.api_s3_delete.arn
+  policy_arn = aws_iam_policy.api_s3.arn
 }
 
 

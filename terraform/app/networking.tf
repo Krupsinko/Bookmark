@@ -38,7 +38,7 @@ resource "aws_nat_gateway" "main" {
 # S3 GATEWAY ENDPOINT
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.eu-central-1.s3"
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = [
@@ -49,15 +49,19 @@ resource "aws_vpc_endpoint" "s3" {
     Name = "bookmark-s3-endpoint"
   }
 }
-
-
-
-
+# AVAILABILITY ZONES
+data "aws_availability_zones" "available" {
+  state = "available"
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 # PUBLIC SUBNETS
 resource "aws_subnet" "public_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "eu-central-1a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "bookmark-public-a"
@@ -66,7 +70,7 @@ resource "aws_subnet" "public_a" {
 resource "aws_subnet" "public_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "eu-central-1b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "bookmark-public-b"
@@ -101,7 +105,7 @@ resource "aws_route_table_association" "public_b" {
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.11.0/24"
-  availability_zone = "eu-central-1a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "bookmark-private-a"
@@ -110,7 +114,7 @@ resource "aws_subnet" "private_a" {
 resource "aws_subnet" "private_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.12.0/24"
-  availability_zone = "eu-central-1b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "bookmark-private-b"

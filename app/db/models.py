@@ -3,6 +3,7 @@ from typing import List
 
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.enums import ScreenshotStatus
 
 from .database import Base
 
@@ -10,7 +11,7 @@ from .database import Base
 class User(Base):
     __tablename__ = "user"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
@@ -26,7 +27,7 @@ class User(Base):
 class Bookmark(Base):
     __tablename__ = "bookmark"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     url: Mapped[str] = mapped_column(String, nullable=False)
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -34,10 +35,10 @@ class Bookmark(Base):
     tags: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
     s3_key: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now(), nullable=True
+        DateTime, server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now(), onupdate=func.now(), nullable=True
+        DateTime, server_default=func.now(), onupdate=func.now()
     )
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
@@ -46,3 +47,8 @@ class Bookmark(Base):
         Integer, ForeignKey("user.id", ondelete="CASCADE")
     )
     owner: Mapped["User"] = relationship(back_populates="bookmarks")
+    screenshot_status: Mapped[str] = mapped_column(
+    String(16),
+    nullable=False,
+    default=ScreenshotStatus.PENDING.value
+    )

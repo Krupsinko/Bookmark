@@ -24,6 +24,7 @@ from ..schemas.schemas import (
 )
 from .users import get_current_user
 from app.config import AwsSetting
+from app.enums import ScreenshotStatus
 
 router = APIRouter(prefix="/bookmarks", tags=["Bookmarks"])
 
@@ -139,7 +140,7 @@ async def create_bookmark(
 
     celery_app.send_task(
         "bookmark.page_screenshot",
-        args=[bookmark.url, s3_key],
+        args=[bookmark.url, s3_key, bookmark.id],
     )
     return bookmark
 
@@ -246,6 +247,20 @@ async def get_screenshot_url(
             detail="Screenshot not found.",
         )
 
+    if bookmark.screenshot_status in {
+        ScreenshotStatus.PENDING.value,
+        ScreenshotStatus.PROCESSING.value
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Screenshot is not ready."
+        )
+    if bookmark.screenshot_status == ScreenshotStatus.FAILED.value:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Screenshot failed."
+        )
+        
     expires_in = 300
     url = s3.generate_presigned_url(
         ClientMethod="get_object",

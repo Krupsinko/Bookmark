@@ -1,11 +1,11 @@
 # ECS SERVICE FOR API
 resource "aws_ecs_service" "api" {
-  name            = "bookmark-api"
-  cluster         = aws_ecs_cluster.bookmark.id
-  task_definition = aws_ecs_task_definition.api.arn
-  desired_count = 1
-  launch_type   = "FARGATE"
-  wait_for_steady_state  = true
+  name                  = "bookmark-api"
+  cluster               = aws_ecs_cluster.bookmark.id
+  task_definition       = aws_ecs_task_definition.api.arn
+  desired_count         = 1
+  launch_type           = "FARGATE"
+  wait_for_steady_state = true
 
   network_configuration {
     subnets = [
@@ -67,7 +67,7 @@ resource "aws_ecs_task_definition" "api" {
 
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.api.name
-          "awslogs-region"        = "eu-central-1"
+          "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "api"
         }
       }
@@ -95,7 +95,7 @@ resource "aws_ecs_task_definition" "api" {
           value = "HS256"
         },
         {
-          name = "S3_BUCKET_NAME"
+          name  = "S3_BUCKET_NAME"
           value = aws_s3_bucket.screenshots.bucket
         }
       ]
@@ -128,12 +128,12 @@ resource "aws_ecs_task_definition" "api" {
 
 # ECS SERVICE FOR CELERY
 resource "aws_ecs_service" "celery" {
-  name            = "bookmark-celery"
-  cluster         = aws_ecs_cluster.bookmark.id
-  task_definition = aws_ecs_task_definition.celery.arn
-  desired_count = 1
-  launch_type   = "FARGATE"
-  wait_for_steady_state  = true
+  name                  = "bookmark-celery"
+  cluster               = aws_ecs_cluster.bookmark.id
+  task_definition       = aws_ecs_task_definition.celery.arn
+  desired_count         = 1
+  launch_type           = "FARGATE"
+  wait_for_steady_state = true
 
   network_configuration {
     subnets = [
@@ -179,7 +179,7 @@ resource "aws_ecs_task_definition" "celery" {
 
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.celery.name
-          "awslogs-region"        = "eu-central-1"
+          "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "celery"
         }
       }
@@ -192,8 +192,31 @@ resource "aws_ecs_task_definition" "celery" {
           value = aws_elasticache_replication_group.redis.primary_endpoint_address
         },
         {
+          name  = "DB_HOST"
+          value = aws_db_instance.bookmark.address
+        },
+        {
+          name  = "DB_PORT"
+          value = tostring(aws_db_instance.bookmark.port)
+        },
+        {
+          name  = "DB_NAME"
+          value = aws_db_instance.bookmark.db_name
+        },
+        {
           name  = "S3_BUCKET_NAME"
           value = aws_s3_bucket.screenshots.bucket
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "DB_USER"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:username::"
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = "${aws_db_instance.bookmark.master_user_secret[0].secret_arn}:password::"
         }
       ]
 
@@ -240,8 +263,8 @@ ephemeral "random_password" "jwt_secret" {
   special = false
 }
 resource "aws_secretsmanager_secret" "jwt_secret" {
-  name = "bookmark-jwt-secret"
-  recovery_window_in_days = 0 
+  name                    = "bookmark-jwt-secret"
+  recovery_window_in_days = 0
 }
 resource "aws_secretsmanager_secret_version" "jwt_secret" {
   secret_id                = aws_secretsmanager_secret.jwt_secret.id

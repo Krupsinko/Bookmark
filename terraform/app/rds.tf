@@ -22,7 +22,7 @@ resource "aws_db_instance" "bookmark" {
 
   publicly_accessible = false
 
-  skip_final_snapshot = false
+  skip_final_snapshot = true
 
   tags = {
     Name = "bookmark-db"

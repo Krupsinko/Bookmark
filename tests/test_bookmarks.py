@@ -5,7 +5,7 @@ import pytest
 from fastapi import status
 from freezegun import freeze_time
 from sqlalchemy import select
-
+from app.enums import ScreenshotStatus
 from .utils import (
     AsyncClient,
     Bookmark,
@@ -62,7 +62,7 @@ async def test_get_bookmark_authorized(async_client: AsyncClient, seed_data):
 
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 12:00:00", tz_offset=0)
-async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data):
+async def test_create_bookmark(async_client: AsyncClient, db_session):
     request_data = {
         "title": "Create Test",
         "url": "https://example.com/",
@@ -87,7 +87,7 @@ async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data)
     assert s3_key.endswith(".png")
     async_client.mock_send_task.assert_called_once_with(
         "bookmark.page_screenshot",
-        args=["https://example.com/", s3_key],
+        args=["https://example.com/", s3_key, 1],
     )
 
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))
@@ -95,6 +95,7 @@ async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data)
     assert bookmark is not None
     assert bookmark.title == "Create Test"
     assert bookmark.url == "https://example.com/"
+    assert bookmark.screenshot_status == "pending"
 
 
 @pytest.mark.asyncio
@@ -148,11 +149,20 @@ def mock_screenshot_url():
 
 
 @pytest.mark.asyncio
-async def test_get_screenshot_url(
+async def test_get_screenshot_url_ready(
     mock_screenshot_url,
     async_client: AsyncClient,
+    db_session,
     seed_data
-    ):
+):
+    
+    result = await db_session.execute(
+        select(Bookmark).where(Bookmark.id == 1)
+    )
+    bookmark = result.scalar_one()
+    bookmark.screenshot_status = ScreenshotStatus.READY.value
+    await db_session.commit()
+
     
     response = await async_client.get(
         "bookmarks/1/screenshot-url",
@@ -172,3 +182,45 @@ async def test_get_screenshot_url(
         },
         ExpiresIn=300
     )
+
+@pytest.mark.asyncio
+async def test_get_screenshot_url_pending(
+    mock_screenshot_url,
+    async_client: AsyncClient,
+    seed_data,
+):
+    response = await async_client.get(
+        "/bookmarks/1/screenshot-url",
+        headers={"Authorization": "Bearer testtoken"},
+    )
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.json() == {"detail": "Screenshot is not ready."}
+    mock_screenshot_url.assert_not_called()
+    
+    
+
+@pytest.mark.asyncio
+async def test_get_screenshot_url_failed(
+    mock_screenshot_url,
+    async_client: AsyncClient,
+    db_session,
+    seed_data
+):
+    
+    result = await db_session.execute(
+        select(Bookmark).where(Bookmark.id == 1)
+    )
+    bookmark = result.scalar_one()
+    bookmark.screenshot_status = ScreenshotStatus.FAILED.value
+    await db_session.commit()
+
+    
+    response = await async_client.get(
+        "bookmarks/1/screenshot-url",
+        headers={"Authorization": "Bearer testtoken"}
+    )
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.json() == {"detail": "Screenshot failed."}
+    
+    mock_screenshot_url.assert_not_called()

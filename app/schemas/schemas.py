@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
+from app.enums import ScreenshotStatus
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
@@ -23,6 +24,7 @@ class BookmarkResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     s3_key: str | None
+    screenshot_status: ScreenshotStatus
 
 
 class PaginateBookmarkReponse(BaseModel):
@@ -41,7 +43,7 @@ class BookmarkCreate(BaseModel):
     title: str = Field(max_length=100)
     description: Optional[str] = Field(None, max_length=255)
     tags: Optional[List[str]] = Field(None, max_length=255)
-    favorite: bool = Field(True)
+    favorite: bool = Field(False)
 
 
 class BookmarkUpdate(BaseModel):

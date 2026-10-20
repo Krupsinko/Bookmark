@@ -10,6 +10,7 @@ services:
       REDIS_HOST: redis
       SECRET_KEY: secret
       ALGORITHM: HS256
+      S3_BUCKET_NAME: s3_bucket
     ports:
       - "8000:8000"
     depends_on:
@@ -38,6 +39,11 @@ services:
   celery:
     build: .
     environment:
+      DB_NAME: dev_db
+      DB_USER: dev_user
+      DB_PASSWORD: dev_password
+      DB_PORT: 5432
+      DB_HOST: db
       REDIS_HOST: redis
       S3_BUCKET_NAME: s3_bucket
     depends_on:

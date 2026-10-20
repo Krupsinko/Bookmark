@@ -28,7 +28,7 @@ resource "aws_iam_role" "github_actions" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = "repo:Krupsinko/Bookmark:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repository}:ref:refs/heads/${var.github_branch}"
           }
         }
       }
@@ -115,8 +115,6 @@ resource "aws_iam_role_policy_attachment" "github_terraform_state" {
 }
 
 
-
-
 resource "aws_iam_policy" "github_terraform_apply" {
   name = "bookmark-github-terraform-apply"
   policy = jsonencode({
@@ -141,7 +139,7 @@ resource "aws_iam_policy" "github_terraform_apply" {
         Sid      = "ScreenshotBucket"
         Effect   = "Allow"
         Action   = "s3:*"
-        Resource = "arn:aws:s3:::bookmark-screenshots-dev"
+        Resource = "arn:aws:s3:::bookmark-screenshots-${data.aws_caller_identity.current.account_id}"
       },
 
       {
@@ -175,8 +173,10 @@ resource "aws_iam_policy" "github_terraform_apply" {
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-ecs-execution-role",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-celery-role",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-api-task-role",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bookmark-celery-s3",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/ecs-secrets-manager"
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/ecs-secrets-manager",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bookmark-api-s3"
         ]
       },
 
@@ -188,7 +188,8 @@ resource "aws_iam_policy" "github_terraform_apply" {
 
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-ecs-execution-role",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-celery-role"
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-celery-role",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/bookmark-api-task-role"
         ]
 
         Condition = {

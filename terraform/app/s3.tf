@@ -1,13 +1,7 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket" "screenshots" {
-  bucket = "bookmark-screenshots-dev"
-}
-
-resource "aws_s3_bucket_versioning" "screenshots" {
-  bucket = aws_s3_bucket.screenshots.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
+  bucket = "bookmark-screenshots-${data.aws_caller_identity.current.account_id}"
 }
 
 resource "aws_s3_bucket_public_access_block" "screenshots" {

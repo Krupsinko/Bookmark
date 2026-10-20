@@ -82,9 +82,9 @@ jobs:
       contents: read
 
     env:
-      AWS_REGION: eu-central-1
       ECR_REPOSITORY: bookmark-api
       IMAGE_TAG: ${{ github.sha }}
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
 
     steps:
       - name: Checkout repo
@@ -93,8 +93,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::424322298651:role/bookmark-github-actions
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.TF_VAR_aws_region }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -113,7 +113,14 @@ jobs:
 
       - name: Terraform init
         working-directory: terraform/app
-        run: terraform init
+        run: |
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          STATE_BUCKET="bookmark-tfstate-${ACCOUNT_ID}"
+
+          terraform init \
+            -backend-config="bucket=${STATE_BUCKET}" \
+            -backend-config="key=bookmark/dev/terraform.tfstate" \
+            -backend-config="region=${{env.TF_VAR_aws_region}}"
 
       - name: Terraform apply
         working-directory: terraform/app
