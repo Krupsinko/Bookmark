@@ -12,12 +12,12 @@ class DatabaseSettings(BaseSettings):
     @property
     def DATABASE_URL(self) -> URL:
         url_object = URL.create(
-            "postgresql+asyncpg",
-            database=self.DB_NAME,
+            drivername="postgresql+asyncpg",
             username=self.DB_USER,
             password=self.DB_PASSWORD,
+            host=self.DB_HOST,
             port=self.DB_PORT,
-            host=self.DB_HOST
+            database=self.DB_NAME,
         )
         return url_object
 
