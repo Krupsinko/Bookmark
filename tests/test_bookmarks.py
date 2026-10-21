@@ -62,7 +62,7 @@ async def test_get_bookmark_authorized(async_client: AsyncClient, seed_data):
 
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 12:00:00", tz_offset=0)
-async def test_create_bookmark(async_client: AsyncClient, db_session):
+async def test_create_bookmark(async_client: AsyncClient, db_session, seed_data):
     request_data = {
         "title": "Create Test",
         "url": "https://example.com/",
@@ -87,7 +87,7 @@ async def test_create_bookmark(async_client: AsyncClient, db_session):
     assert s3_key.endswith(".png")
     async_client.mock_send_task.assert_called_once_with(
         "bookmark.page_screenshot",
-        args=["https://example.com/", s3_key, 1],
+        args=[data["url"], s3_key, data["id"]],
     )
 
     result = await db_session.execute(select(Bookmark).where(Bookmark.id == data["id"]))

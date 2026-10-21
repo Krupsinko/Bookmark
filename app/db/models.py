@@ -41,14 +41,15 @@ class Bookmark(Base):
         DateTime, server_default=func.now(), onupdate=func.now()
     )
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    screenshot_status: Mapped[str] = mapped_column(
+    String(16),
+    nullable=False,
+    default=ScreenshotStatus.PENDING.value
+    )
 
     # --- RELATIONS ---
     owner_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("user.id", ondelete="CASCADE")
     )
     owner: Mapped["User"] = relationship(back_populates="bookmarks")
-    screenshot_status: Mapped[str] = mapped_column(
-    String(16),
-    nullable=False,
-    default=ScreenshotStatus.PENDING.value
-    )
+    
