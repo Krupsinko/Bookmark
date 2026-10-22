@@ -1,5 +1,5 @@
 import boto3
-
+from botocore.config import Config
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
@@ -33,7 +33,14 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 aws_settings = AwsSetting()
 
-s3 = boto3.client("s3")
+s3_client = boto3.client(
+        's3_client',
+        region_name=aws_settings.AWS_REGION,
+        config=Config(
+            signature_version='s3v4',
+            s3={'addressing_style': 'virtual'},
+        ),
+)
 s3_bucket_name = aws_settings.S3_BUCKET_NAME
 
 class SortBy(str, Enum):
@@ -208,7 +215,7 @@ async def delete_bookmark(
 
     if bookmark.s3_key:
         await run_in_threadpool(
-            s3.delete_object,
+            s3_client.delete_object,
             Bucket=s3_bucket_name,
             Key=bookmark.s3_key,
         )
@@ -262,7 +269,7 @@ async def get_screenshot_url(
         )
         
     expires_in = 300
-    url = s3.generate_presigned_url(
+    url = s3_client.generate_presigned_url(
         ClientMethod="get_object",
         Params={
             "Bucket": s3_bucket_name,

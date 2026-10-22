@@ -75,6 +75,10 @@ resource "aws_ecs_task_definition" "api" {
 
       environment = [
         {
+          name = "AWS_REGION"
+          value = var.aws_region
+        },
+        {
           name  = "REDIS_HOST"
           value = aws_elasticache_replication_group.redis.primary_endpoint_address
         },
@@ -187,6 +191,10 @@ resource "aws_ecs_task_definition" "celery" {
 
 
       environment = [
+        {
+          name = "AWS_REGION"
+          value = var.aws_region
+        },
         {
           name  = "REDIS_HOST"
           value = aws_elasticache_replication_group.redis.primary_endpoint_address

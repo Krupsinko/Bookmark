@@ -1,4 +1,5 @@
 import boto3
+from botocore.config import Config
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 from sqlalchemy import create_engine, update, func
@@ -12,7 +13,14 @@ from .celery_config import celery_app
 aws_settings = AwsSetting()
 db_settings = DatabaseSettings()
 
-s3 = boto3.client("s3")
+s3_client = boto3.client(
+        's3',
+        region_name=aws_settings.AWS_REGION,
+        config=Config(
+            signature_version='s3v4',
+            s3={'addressing_style': 'virtual'},
+        )
+)
 s3_bucket_name = aws_settings.S3_BUCKET_NAME
 
 
@@ -50,7 +58,7 @@ def page_screenshot(self, url: str, s3_key: str, bookmark_id: int) -> str:
                 page.goto(url, timeout=60000)
                 screenshot = page.screenshot(full_page=True, type="png")
 
-                s3.put_object(
+                s3_client.put_object(
                     Bucket=s3_bucket_name,
                     Key=s3_key,
                     Body=screenshot,

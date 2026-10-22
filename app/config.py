@@ -29,6 +29,7 @@ class EncryptSettings(BaseSettings):
 
 class AwsSetting(BaseSettings):
     S3_BUCKET_NAME: str
+    AWS_REGION: str
 
 
 class RedisSettings(BaseSettings):
