@@ -12,7 +12,7 @@ SCREENSHOT = b"png-content"
 @pytest.fixture
 def mock_worker_dependencies():
     with patch("worker.celery_worker.sync_playwright") as mock_sync_playwright:
-        with patch("worker.celery_worker.s3") as mock_s3:
+        with patch("worker.celery_worker.s3_client2") as mock_s3:
             playwright = MagicMock()
             chromium = MagicMock()
             browser = MagicMock()

@@ -13,6 +13,7 @@ TEST_SETTINGS = {
     "AWS_ACCESS_KEY_ID": "test",
     "AWS_SECRET_ACCESS_KEY": "test",
     "AWS_DEFAULT_REGION": "eu-central-1",
+    "AWS_REGION": "eu-central-1"
 }
 
 for name, value in TEST_SETTINGS.items():

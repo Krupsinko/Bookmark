@@ -12,17 +12,17 @@ from .celery_config import celery_app
 
 aws_settings = AwsSetting()
 db_settings = DatabaseSettings()
+aws_region = aws_settings.AWS_REGION
+s3_bucket_name = aws_settings.S3_BUCKET_NAME
 
 s3_client = boto3.client(
         's3',
-        region_name=aws_settings.AWS_REGION,
+        region_name=aws_region,
         config=Config(
             signature_version='s3v4',
             s3={'addressing_style': 'virtual'},
         )
 )
-s3_bucket_name = aws_settings.S3_BUCKET_NAME
-
 
 sync_db_url = db_settings.DATABASE_URL.set(drivername="postgresql+psycopg2")
 sync_engine = create_engine(sync_db_url, pool_pre_ping=True)

@@ -121,7 +121,7 @@ async def test_update_bookmark(async_client: AsyncClient, db_session, seed_data)
 
 @pytest.mark.asyncio
 async def test_delete_bookmark(async_client: AsyncClient, db_session, seed_data):
-    with patch("app.routers.bookmarks.s3.delete_object") as mock_delete:     
+    with patch("app.routers.bookmarks.s3_client.delete_object") as mock_delete:     
         response = await async_client.delete(
             "/bookmarks/1",
             headers={"Authorization": "Bearer testtoken"}
@@ -142,7 +142,7 @@ async def test_delete_bookmark(async_client: AsyncClient, db_session, seed_data)
 @pytest.fixture
 def mock_screenshot_url():
     with patch(
-        "app.routers.bookmarks.s3.generate_presigned_url",
+        "app.routers.bookmarks.s3_client.generate_presigned_url",
         return_value = "https://presigned-test-url"
         ) as mock_url:
         yield mock_url 

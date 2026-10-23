@@ -32,16 +32,18 @@ db_dependency = Annotated[AsyncSession, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 aws_settings = AwsSetting()
+aws_region = aws_settings.AWS_REGION
+s3_bucket_name = aws_settings.S3_BUCKET_NAME
 
 s3_client = boto3.client(
-        's3_client',
-        region_name=aws_settings.AWS_REGION,
+        's3',
+        region_name=aws_region,
         config=Config(
             signature_version='s3v4',
             s3={'addressing_style': 'virtual'},
         ),
 )
-s3_bucket_name = aws_settings.S3_BUCKET_NAME
+
 
 class SortBy(str, Enum):
     CREATED_AT_DESC = "Date descending"
