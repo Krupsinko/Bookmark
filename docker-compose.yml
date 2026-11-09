@@ -11,6 +11,7 @@ services:
       SECRET_KEY: secret
       ALGORITHM: HS256
       S3_BUCKET_NAME: s3_bucket
+      AWS_REGION: dev_region
     ports:
       - "8000:8000"
     depends_on:
@@ -46,6 +47,7 @@ services:
       DB_HOST: db
       REDIS_HOST: redis
       S3_BUCKET_NAME: s3_bucket
+      AWS_REGION: dev_region
     depends_on:
       redis:
         condition: service_started
