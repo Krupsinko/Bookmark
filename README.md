@@ -1,11 +1,11 @@
 # Bookmark
 
-This is my personal portfolio project demonstrating a containerized bookmark manager built from scratch using FastAPI, GitHub Actions, and AWS provisioned with Terraform. What started as a small sandbox/learning project has over time evolved into a clean, modern backend architecture featuring infrastructure as code, CI/CD pipelines, automated testing, and background processing, with everything hosted on AWS.
+Bookmark is a containerized bookmark manager built with FastAPI and deployed on AWS. The project combines backend development with infrastructure as code provisioned with Terraform, automated testing, CI/CD, and background task processing using Celery.
 
 ## Features
 
 - User registration and authentication using JWT
-- Full CRUD Operations - bookmark management with sorting and pagination
+- Full CRUD operations - bookmark management with sorting and pagination
 - Background screenshot generation using Celery and Playwright.
 - Screenshot storage in Amazon S3
 - PostgreSQL database with Alembic schema migrations
@@ -16,7 +16,7 @@ This is my personal portfolio project demonstrating a containerized bookmark man
 ## Architecture
 - **Application Load Balancer** receives HTTP traffic and forwards it to the API
 - **ECS Fargate** runs FastAPI application and Celery worker
-- **Amazon RDS for PostgreSQL** works as database for users and bookmarks
+- **Amazon RDS for PostgreSQL** serves as the database for users and bookmarks
 - **Amazon S3** stores screenshots
 - **Amazon ElastiCache for Redis** provides the Celery message broker
 - **AWS Secrets Manager** manages sensitive configuration
@@ -47,14 +47,14 @@ The GitHub Actions workflow is located in `.github/workflows/ci.yml`
 
 ### CD - push to `main` after CI succeeds
 
-1. GitHub Actions recieves temporary AWS credentials through OIDC.
-2. Docker builds new image tagged with commit SHA, and pushes it to ECR.
-3. Terraform applies the infrastructure changes, and update the ECS tasks with latest image.
+1. GitHub Actions receives temporary AWS credentials through OIDC.
+2. Docker builds a new image tagged with the commit SHA and pushes it to ECR.
+3. Terraform applies the infrastructure changes and updates the ECS tasks with the latest image.
 
 >The workflow uses GitHub OIDC. The AWS IAM trust policy defines which GitHub repository and branch can assume the deployment role.
 
 ## Local Deployment
->Docker Compose does not include a local S3-compatible service, as a result, screenshot generation and retrieval does not work.
+>Docker Compose does not include a local S3-compatible service. As a result, screenshot generation and retrieval do not work.
 ### Requirements
 
 Docker Desktop with Docker Compose and Git
@@ -181,12 +181,13 @@ pytest
 
 ## Limitations
 
-This portfolio project is demonstrating backend development,
-AWS infrastructure and CI/CD automation. It is not production-ready
-service.
+This project was built for learning and portfolio purposes, it demonstrates backend development, AWS infrastructure, and CI/CD automation.
+It is not production-ready service.
+
 
 Further improvements include:
 
 - Adding HTTPS support to the ALB using an ACM certificate for a custom domain.
 - Tightening IAM permissions for GitHub Actions OIDC role.
 - Adding a local S3 screenshot storage to Docker Compose 
+- Adding SSRF protection for a URL proccesed by the Celery worker.  

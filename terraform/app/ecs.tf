@@ -75,7 +75,7 @@ resource "aws_ecs_task_definition" "api" {
 
       environment = [
         {
-          name = "AWS_REGION"
+          name  = "AWS_REGION"
           value = var.aws_region
         },
         {
@@ -192,7 +192,7 @@ resource "aws_ecs_task_definition" "celery" {
 
       environment = [
         {
-          name = "AWS_REGION"
+          name  = "AWS_REGION"
           value = var.aws_region
         },
         {
